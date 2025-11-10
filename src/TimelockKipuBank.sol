@@ -5,7 +5,7 @@ pragma solidity 0.8.30;
  * @title TimelockKipuBank
  * @notice Timelock controller for KipuBankV3 governance
  * @dev Implementa un sistema de delays para cambios administrativos críticos
- * 
+ *
  * Flujo de operación:
  * 1. Proposer propone un cambio (ej: cambiar precio feed)
  * 2. Transacción queda pendiente por DELAY duración
@@ -30,64 +30,30 @@ contract TimelockKipuBank is TimelockController {
      * @param executors Array de direcciones que pueden ejecutar cambios
      * @param admin Dirección del administrador del Timelock
      */
-    constructor(
-        address[] memory proposers,
-        address[] memory executors,
-        address admin
-    ) TimelockController(
-        MIN_DELAY,
-        proposers,
-        executors,
-        admin
-    ) {}
+    constructor(address[] memory proposers, address[] memory executors, address admin)
+        TimelockController(MIN_DELAY, proposers, executors, admin)
+    {}
 
     /**
      * @notice Propone un cambio de precio feed
      * @dev Esta es una función auxiliar para mejorar UX
      */
-    function proposePriceFeedChange(
-        address kipuBankAddress,
-        address newPriceFeed
-    ) external {
-        bytes memory data = abi.encodeWithSignature(
-            "setEthPriceFeedAddress(address)",
-            newPriceFeed
-        );
-        
-        bytes32 id = hashOperation(
-            kipuBankAddress,
-            0,
-            data,
-            bytes32(0),
-            bytes32(0)
-        );
+    function proposePriceFeedChange(address kipuBankAddress, address newPriceFeed) external {
+        bytes memory data = abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed);
+
+        bytes32 id = hashOperation(kipuBankAddress, 0, data, bytes32(0), bytes32(0));
 
         schedule(kipuBankAddress, 0, data, bytes32(0), bytes32(0), MIN_DELAY);
 
-        emit OperationScheduled(
-            id,
-            0,
-            kipuBankAddress,
-            0,
-            data,
-            bytes32(0),
-            MIN_DELAY
-        );
+        emit OperationScheduled(id, 0, kipuBankAddress, 0, data, bytes32(0), MIN_DELAY);
     }
 
     /**
      * @notice Ejecuta un cambio de precio feed propuesto
      * @dev Debe ser llamado después del delay
      */
-    function executePriceFeedChange(
-        address kipuBankAddress,
-        address newPriceFeed,
-        bytes32 salt
-    ) external {
-        bytes memory data = abi.encodeWithSignature(
-            "setEthPriceFeedAddress(address)",
-            newPriceFeed
-        );
+    function executePriceFeedChange(address kipuBankAddress, address newPriceFeed, bytes32 salt) external {
+        bytes memory data = abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed);
 
         execute(kipuBankAddress, 0, data, bytes32(0), salt);
     }
