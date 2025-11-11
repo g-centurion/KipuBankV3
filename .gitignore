@@ -13,3 +13,30 @@ docs/
 # Dotenv file
 .env
 .env.local
+
+# Backup files
+*.bak
+*.backup
+*_backup.*
+
+# Temporary files
+*.log
+job-logs.txt
+.dummy
+tmp_*
+*_tmp.*
+
+# Windows temporary files
+*.Zone.Identifier
+*:Zone.Identifier
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Lock files (optional - keep for reproducibility)
+# foundry.lock
