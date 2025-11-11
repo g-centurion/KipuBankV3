@@ -1,0 +1,15 @@
+{
+  // Remappings para que la extensión Solidity resuelva imports tipo @chainlink y @uniswap
+  "solidity.remappings": [
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@chainlink/contracts/=lib/chainlink-local/lib/chainlink-brownie-contracts/contracts/",
+    "@uniswap/v2-periphery/=lib/v2-periphery/"
+  ],
+
+  // Opcional: usar la versión de Solidity del proyecto si lo deseas
+  "solidity.compileUsingRemoteVersion": "0.8.30",
+
+  // Evita que el LSP intente adivinar otras configuraciones del sistema
+  "solidity.detectProjectSettings": false
+}

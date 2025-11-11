@@ -68,7 +68,7 @@ pragma solidity 0.8.30;
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
@@ -87,6 +87,10 @@ error Bank__InsufficientBalance(uint256 available, uint256 requested);
 error Bank__TransferFailed();
 /// @dev Thrown when an invalid token address (like address(0)) is used in an ERC-20 context.
 error Bank__InvalidTokenAddress();
+/// @dev Thrown when a zero amount is provided to a function that expects > 0.
+error Bank__ZeroAmount();
+/// @dev Thrown when a token is not supported by the bank's token catalog.
+error Bank__TokenNotSupported();
 /// @dev Thrown if the price obtained after the swap is less than the minimum expected amount (V8, V14: Anti-Slippage/MEV protection).
 error Bank__SlippageTooHigh();
 /// @dev Thrown if the price obtained from Chainlink is stale (timestamp too old).
@@ -187,13 +191,14 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         address routerAddress_,
         address usdcAddress_
     ) {
-        // --- 1. Role Assignment (RBAC V2) ---
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(CAP_MANAGER_ROLE, msg.sender);
-        _grantRole(PAUSE_MANAGER_ROLE, msg.sender);
-        _grantRole(TOKEN_MANAGER_ROLE, msg.sender);
+    // --- 1. Role Assignment (RBAC V2) ---
+    // Grant roles to the deployer (msg.sender) only.
+    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _grantRole(CAP_MANAGER_ROLE, msg.sender);
+    _grantRole(PAUSE_MANAGER_ROLE, msg.sender);
+    _grantRole(TOKEN_MANAGER_ROLE, msg.sender);
 
-        // --- 2. Input Validation ---
+    // --- 2. Input Validation ---
         if (routerAddress_ == address(0) || usdcAddress_ == address(0) || ethPriceFeedAddress_ == address(0)) {
             revert Bank__InvalidTokenAddress();
         }
