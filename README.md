@@ -132,7 +132,55 @@ forge coverage
 
 ---
 
-## 📖 Uso y Ejemplos Rápidos
+## � Cobertura de Tests
+
+La cobertura de tests ha sido validada con **43 tests ejecutados exitosamente**, superando significativamente el requisito mínimo del 50%.
+
+### Resultados de Cobertura
+
+| Métrica | Valor | Estado |
+|---------|-------|--------|
+| **Cobertura Total (Lines)** | **73.04%** | ✅ Supera 50% |
+| Cobertura Total (Statements) | 76.71% | ✅ Excelente |
+| Cobertura Total (Branches) | 69.70% | ✅ Muy buena |
+| Cobertura Total (Functions) | 69.23% | ✅ Muy buena |
+
+### Desglose por Archivo
+
+| Archivo | Lines | Statements | Branches | Functions |
+|---------|-------|-----------|----------|-----------|
+| **src/KipuBankV3_TP4.sol** | **89.38%** ⭐ | 89.93% | 68.18% | 88.24% |
+| test/KipuBankV3Test.sol | 81.36% | 87.76% | 72.73% | 70.59% |
+| script/Deploy.s.sol | 0% | 0% | 100% | 0% |
+| src/TimelockKipuBank.sol | 0% | 0% | 100% | 0% |
+
+### Interpretar Métricas
+
+- **% Lines**: Porcentaje de líneas de código ejecutadas durante los tests
+- **% Statements**: Sentencias/instrucciones cubiertas
+- **% Branches**: Ramificaciones (if/else) cubiertas  
+- **% Functions**: Funciones llamadas durante los tests
+
+### Generar Reporte de Cobertura
+
+Para regenerar el reporte de cobertura:
+
+```bash
+# Cobertura en formato summary (recomendado)
+forge coverage
+
+# Cobertura con formato LCOV (para herramientas externas)
+forge coverage --report lcov
+
+# Ver solo archivos específicos
+forge coverage --report summary | grep KipuBankV3
+```
+
+**Nota**: La cobertura de **89.38%** en el contrato principal indica que casi toda la lógica de negocio está siendo testeada, lo cual es excelente para la confiabilidad del sistema.
+
+---
+
+## �📖 Uso y Ejemplos Rápidos
 
 ### Depósito de ETH
 
