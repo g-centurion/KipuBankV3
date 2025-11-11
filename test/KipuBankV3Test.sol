@@ -90,7 +90,7 @@ contract MockRouter {
     }
 
     // Minimal implementations to satisfy interface used in tests
-    function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[] memory amounts) {
+    function getAmountsOut(uint256 amountIn, address[] memory path) external pure returns (uint256[] memory amounts) {
         amounts = new uint256[](path.length);
         for (uint256 i = 0; i < path.length; i++) {
             if (i == 0) amounts[i] = amountIn;
@@ -240,9 +240,8 @@ function testPauseFailsForUserWithoutRole() public {
         // Set price to negative to test oracle validation
         MockAggregator invalidPriceFeed = new MockAggregator(-1);
 
-        // The deployer (this test contract) already has CAP_MANAGER_ROLE from constructor,
-        // so no need to prank/grant roles here — just set the feed directly.
-        bytes32 CAP_MANAGER_ROLE = bank.CAP_MANAGER_ROLE();
+    // The deployer (this test contract) already has CAP_MANAGER_ROLE from constructor,
+    // so no need to prank/grant roles here — just set the feed directly.
         bank.setEthPriceFeedAddress(address(invalidPriceFeed));
 
         vm.prank(user);
@@ -463,9 +462,8 @@ function testPauseFailsForUserWithoutRole() public {
         MockAggregator newPriceFeed = new MockAggregator(int256(2500 * 10 ** 8));
 
         // Debe permitir a CAP_MANAGER_ROLE
-        bytes32 CAP_MANAGER_ROLE = bank.CAP_MANAGER_ROLE();
         vm.prank(address(this)); // Este test contract es el deployer
-    bank.setEthPriceFeedAddress(address(newPriceFeed));
+        bank.setEthPriceFeedAddress(address(newPriceFeed));
 
         // Verificar que el nuevo feed funciona
         vm.prank(user);
