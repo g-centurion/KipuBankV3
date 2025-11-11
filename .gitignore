@@ -40,3 +40,12 @@ tmp_*
 
 # Lock files (optional - keep for reproducibility)
 # foundry.lock
+
+# Local analysis and cleanup documents (not for repo)
+ANALISIS_*.md
+LIMPIEZA_*.md
+*_REPO.md
+SESION_*.md
+CAMBIOS_*.md
+RESUMEN_*.md
+*_TEMP*.md
