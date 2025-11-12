@@ -12,7 +12,30 @@ Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</co
 </sub>
 
 </div>
- 
+
+---
+
+## Índice
+- [Resumen ejecutivo](#resumen-ejecutivo)
+- [Características principales](#caracteristicas-principales)
+- [Especificaciones técnicas](#especificaciones-tecnicas)
+- [Integraciones DeFi](#integraciones-defi)
+- [Diagramas esenciales](#diagramas-esenciales)
+- [Instalación y uso](#instalacion-y-uso)
+- [Interacción on-chain (cast)](#interaccion-on-chain-cast)
+- [Testing y cobertura](#testing-y-cobertura)
+- [Requisitos esperados del TP4](#entregable-tp4-formato-oficial)
+- [Deploy y verificación](#deploy-y-verificacion)
+- [Gas y optimizaciones](#gas-y-optimizaciones)
+- [Limitaciones y roadmap](#limitaciones-y-roadmap)
+- [Licencia](#licencia)
+
+---
+
+<a id="resumen-ejecutivo"></a>
+## Resumen ejecutivo
+KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (con swap automático a USDC), retiros con límites por transacción y validaciones robustas vía Chainlink. Integra seguridad basada en CEI, ReentrancyGuard, Pausable, AccessControl y errores personalizados.
+
 ---
 
 <a id="caracteristicas-principales"></a>
@@ -348,33 +371,6 @@ Resultado: contrato desplegado y verificado en Sepolia.
 - `unchecked` en incrementos con pre‑checks.
 - Una sola lectura de oráculo por función.
 - Reutilización de memoria en rutas de swap.
-
----
-
-<a id="roles-y-control-de-acceso"></a>
-## 👥 Roles y control de acceso
-| Rol | Propósito |
-|-----|-----------|
-| DEFAULT_ADMIN_ROLE | Gestión total y asignación de roles |
-| CAP_MANAGER_ROLE | Cambios de feed/params de riesgo |
-| PAUSE_MANAGER_ROLE | `pause` / `unpause` |
-| TOKEN_MANAGER_ROLE | Alta/actualización de tokens soportados |
-
----
-
-<a id="errores-personalizados"></a>
-## ❌ Errores personalizados
-| Error | Contexto |
-|-------|----------|
-| Bank__ZeroAmount | Entradas numéricas vacías |
-| Bank__DepositExceedsCap | Bank cap excedido |
-| Bank__WithdrawalExceedsLimit | Límite por TX superado |
-| Bank__InsufficientBalance | Saldo insuficiente |
-| Bank__TokenNotSupported | Token fuera de catálogo |
-| Bank__SlippageTooHigh | Resultado < mínimo esperado |
-| Bank__StalePrice | Oráculo desactualizado > TIMEOUT |
-| Bank__PriceDeviation | Desviación > tolerancia |
-| Bank__TransferFailed | Fallo de transferencia |
 
 ---
 
