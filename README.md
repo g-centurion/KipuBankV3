@@ -107,9 +107,9 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 <details>
 <summary><h2>Diagramas esenciales</h2></summary>
 
-Se muestran los flujos clave. Los diagramas de mayor detalle (incluyendo árboles de decisión y matrices) están en [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
+Todos los diagramas del sistema están aquí para entender el funcionamiento completo sin necesidad de consultar archivos externos.
 
-<details><summary><strong>Flujo general</strong></summary>
+<details><summary><strong>1. Flujo general del sistema</strong></summary>
 
 ```mermaid
 graph LR
@@ -128,7 +128,7 @@ graph LR
 ```
 </details>
 
-<details><summary><strong>Depósito ETH</strong></summary>
+<details><summary><strong>2. Depósito de ETH (secuencia)</strong></summary>
 
 ```mermaid
 sequenceDiagram
@@ -145,7 +145,29 @@ sequenceDiagram
 ```
 </details>
 
-<details><summary><strong>Retiro</strong></summary>
+<details><summary><strong>3. Depósito ERC20 con swap</strong></summary>
+
+```mermaid
+sequenceDiagram
+   participant U as Usuario
+   participant C as KipuBankV3
+   participant R as UniswapRouter
+   U->>C: depositAndSwapERC20(token, amount, min, deadline)
+   C->>C: validar token soportado
+   C->>U: transferFrom(token, amount)
+   C->>R: getAmountsOut(amount, path)
+   R-->>C: [amounts]
+   C->>C: _checkBankCap(estimatedUSDC)
+   C->>R: approve(router, amount)
+   C->>R: swapExactTokensForTokens(...)
+   R-->>C: [actualAmounts]
+   C->>C: validar slippage
+   C->>C: actualizar balance USDC
+   C-->>U: evento DepositSuccessful
+```
+</details>
+
+<details><summary><strong>4. Retiro (árbol de decisión)</strong></summary>
 
 ```mermaid
 flowchart TD
@@ -166,7 +188,113 @@ flowchart TD
 ```
 </details>
 
-> Más diagramas, incluyendo validación de oráculo, catálogo de tokens, roles, pausa y timelock: ver [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
+<details><summary><strong>5. Validación de oráculo (_getEthPriceInUsd)</strong></summary>
+
+```mermaid
+flowchart TD
+   A[Obtener precio] --> B[latestRoundData]
+   B --> C{price > 0?}
+   C -->|No| D[REVERT]
+   C -->|Sí| E{staleness check}
+   E -->|updatedAt antiguo| F[REVERT StalePrice]
+   E -->|OK| G{lastRecordedPrice > 0?}
+   G -->|No| H[Primera vez: guardar y retornar]
+   G -->|Sí| I{desviación > 5%?}
+   I -->|Sí| J[REVERT PriceDeviation]
+   I -->|No| K[Actualizar lastRecordedPrice]
+   K --> L[Retornar price]
+```
+</details>
+
+<details><summary><strong>6. Patrón CEI (Checks-Effects-Interactions)</strong></summary>
+
+```mermaid
+sequenceDiagram
+   participant F as Función
+   participant S as State
+   participant E as External
+   Note over F: CHECKS
+   F->>F: Validar inputs
+   F->>F: Verificar balances
+   F->>F: Verificar límites
+   Note over F,S: EFFECTS
+   F->>S: Actualizar balances
+   F->>S: Incrementar contadores
+   Note over F,E: INTERACTIONS
+   F->>E: Transferir tokens
+   F->>E: Llamar router/oracle
+   F->>E: Emitir eventos
+```
+</details>
+
+<details><summary><strong>7. Gestión de roles (AccessControl)</strong></summary>
+
+```mermaid
+graph TD
+   A[DEFAULT_ADMIN_ROLE] -->|puede otorgar| B[CAP_MANAGER_ROLE]
+   A -->|puede otorgar| C[PAUSE_MANAGER_ROLE]
+   A -->|puede otorgar| D[TOKEN_MANAGER_ROLE]
+   B -->|puede ejecutar| E[setEthPriceFeedAddress]
+   C -->|puede ejecutar| F[pause/unpause]
+   D -->|puede ejecutar| G[addOrUpdateToken]
+   A -->|puede revocar| B
+   A -->|puede revocar| C
+   A -->|puede revocar| D
+```
+</details>
+
+<details><summary><strong>8. Timelock: programar operación</strong></summary>
+
+```mermaid
+sequenceDiagram
+   participant A as Admin
+   participant T as TimelockKipuBank
+   participant K as KipuBankV3
+   A->>T: schedule(target, value, data, salt, delay)
+   T->>T: validar delay >= minDelay (2 días)
+   T->>T: guardar operación con timestamp
+   Note over T: Esperar delay mínimo
+   A->>T: execute(target, value, data, salt)
+   T->>T: verificar timestamp >= ready
+   T->>K: call(data) → setEthPriceFeedAddress
+   K->>K: actualizar oráculo
+   T-->>A: operación ejecutada
+```
+</details>
+
+<details><summary><strong>9. Catálogo de tokens</strong></summary>
+
+```mermaid
+flowchart LR
+   A[addOrUpdateToken] --> B{caller es TOKEN_MANAGER?}
+   B -->|No| C[REVERT Unauthorized]
+   B -->|Sí| D{token != 0x0?}
+   D -->|No| E[REVERT]
+   D -->|Sí| F[sTokenCatalog mapping]
+   F --> G[priceFeed address]
+   F --> H[decimals uint8]
+   F --> I[isAllowed bool]
+```
+</details>
+
+<details><summary><strong>10. Ciclo completo de transacción</strong></summary>
+
+```mermaid
+stateDiagram-v2
+   [*] --> Preparar: Usuario inicia
+   Preparar --> Firmar: Estimar gas
+   Firmar --> Mempool: Enviar TX
+   Mempool --> Validar: Minero incluye
+   Validar --> Ejecutar: Checks OK
+   Ejecutar --> Confirmar: Effects + Interactions
+   Confirmar --> [*]: Evento emitido
+   
+   Validar --> Revert: Checks fallan
+   Revert --> [*]: TX revertida
+```
+</details>
+
+> Referencia completa con diagramas ASCII detallados: [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md)
 
 </details>
 
@@ -250,6 +378,13 @@ pie
    title Cobertura Global (líneas)
    "Cubierto" : 66.5
    "No cubierto" : 33.5
+```
+
+```mermaid
+pie
+   title Cobertura KipuBankV3_TP4.sol (líneas)
+   "Cubierto" : 89.38
+   "No cubierto" : 10.62
 ```
 
 #### Cobertura por archivo (líneas)
@@ -373,10 +508,10 @@ Resumen en la sección [API del contrato](#6-api-del-contrato-interfaz-pública-
 - Límite por retiro y cap global del banco en USD.
 
 ### 10) Despliegue y verificación
-Comandos en [Deploy y verificación](#-deploy-y-verificación).
+Comandos en [Deploy y verificación](#deploy-y-verificacion).
 
 ### 11) Pruebas y cobertura
-Resumen en [Testing y cobertura](#-testing-y-cobertura). 43/43 tests; 66.5% líneas global; 89.38% en contrato principal.
+Resumen en [Testing y cobertura](#testing-y-cobertura). 43/43 tests; 66.5% líneas global; 89.38% en contrato principal.
 
 ### 12) Conclusiones y mejoras
 - El contrato cumple los requisitos del TP4 con foco en seguridad y trazabilidad.
@@ -403,10 +538,6 @@ Resultado: contrato desplegado y verificado en Sepolia.
 </details>
 
 ---
-
-<a id="gas-y-optimizaciones"></a>
-<details>
-<summary><h2>Gas y optimizaciones</h2></summary>
 
 <a id="gas-y-optimizaciones"></a>
 <details>
