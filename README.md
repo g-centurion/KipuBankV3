@@ -1,7 +1,7 @@
  
 <div align="center">
 
-# 🏦 KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
+# KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
 <strong>Contrato desplegado en Sepolia</strong>
 
 <sub>
@@ -12,34 +12,11 @@ Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</co
 </sub>
 
 </div>
-
+ 
 ---
 
-## 📑 Índice
-- [Resumen ejecutivo](#-resumen-ejecutivo)
-- [Características principales](#-características-principales)
-- [Especificaciones técnicas](#-especificaciones-técnicas)
-- [Integraciones DeFi](#-integraciones-defi)
-- [Diagramas esenciales](#-diagramas-esenciales)
-- [Instalación y uso](#-instalación-y-uso)
-- [Interacción on-chain (cast)](#-interacción-on-chain-cast)
-- [Testing y cobertura](#-testing-y-cobertura)
-- [Entregable TP4 (formato oficial)](#-entregable-tp4-formato-oficial)
-- [Deploy y verificación](#-deploy-y-verificación)
-- [Gas y optimizaciones](#-gas-y-optimizaciones)
-- [Roles y control de acceso](#-roles-y-control-de-acceso)
-- [Errores personalizados](#-errores-personalizados)
-- [Limitaciones y roadmap](#-limitaciones-y-roadmap)
-- [Licencia](#-licencia)
-
----
-
-## 🎯 Resumen ejecutivo
-KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (con swap automático a USDC), retiros con límites por transacción y validaciones robustas vía Chainlink. Integra seguridad basada en CEI, ReentrancyGuard, Pausable, AccessControl y errores personalizados.
-
----
-
-## 🧩 Características principales
+<a id="caracteristicas-principales"></a>
+## Características principales
 - Depósitos: ETH nativo y ERC-20 con conversión a USDC mediante Uniswap V2.
 - Contabilidad multi‑token con saldos internos por usuario.
 - Límite global de banco en USD y tope de retiro por transacción.
@@ -49,7 +26,8 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 
 ---
 
-## 🧠 Especificaciones técnicas
+<a id="especificaciones-tecnicas"></a>
+## Especificaciones técnicas
 
 ### Arquitectura (herencia, librerías e interfaces)
 - Herencia: `AccessControl`, `Pausable`, `ReentrancyGuard`.
@@ -80,13 +58,15 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 
 ---
 
-## 🔗 Integraciones DeFi
+<a id="integraciones-defi"></a>
+## Integraciones DeFi
 - Uniswap V2 Router: estimaciones con `getAmountsOut`, swap con `swapExactTokensForTokens` y ruta por WETH.
 - Chainlink: `latestRoundData()` para ETH/USD; validación de staleness y desviación contra `lastRecordedPrice`.
 
 ---
 
-## 🗺 Diagramas esenciales
+<a id="diagramas-esenciales"></a>
+## Diagramas esenciales
 Se muestran los flujos clave. Los diagramas de mayor detalle (incluyendo árboles de decisión y matrices) están en [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
 
 <details><summary><strong>Flujo general</strong></summary>
@@ -150,7 +130,8 @@ flowchart TD
 
 ---
 
-## 🛠 Instalación y uso
+<a id="instalacion-y-uso"></a>
+## Instalación y uso
 ```bash
 git clone https://github.com/g-centurion/KipuBankV3_TP4.git
 cd KipuBankV3_TP4
@@ -180,7 +161,8 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 ---
 
-## 🔄 Interacción on-chain (cast)
+<a id="interaccion-on-chain-cast"></a>
+## Interacción on-chain (cast)
 ```bash
 # Max withdrawal
 cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
@@ -196,7 +178,8 @@ cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(b
 
 ---
 
-## 🧪 Testing y cobertura
+<a id="testing-y-cobertura"></a>
+## Testing y cobertura
 - Framework: Foundry (forge-std/Test).
 - Tipos de pruebas: unitarias, integración (router/oráculo mocked), fuzzing, eventos, control de acceso y escenarios multi‑usuario.
 
@@ -243,7 +226,8 @@ genhtml -o coverage-html lcov.info
 
 ---
 
-## 📦 Entregable TP4 (formato oficial)
+<a id="entregable-tp4-formato-oficial"></a>
+## Requisitos esperados del TP4
 Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
 
 ### 1) Objetivo
@@ -271,31 +255,50 @@ Implementar un “banco” DeFi educativo que acepte depósitos de ETH y ERC‑2
 - Contrato principal: `0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7`
 - Verificación: Etherscan y Blockscout enlazados en el encabezado.
 
-### 6) API del contrato (públicas/external)
-Funciones principales:
-```
-function deposit() external payable;
-function depositAndSwapERC20(address tokenIn, uint256 amountIn, uint256 amountOutMin, uint48 deadline) external;
-function withdrawToken(address tokenAddress, uint256 amountToWithdraw) external;
+### 6) API del contrato (interfaz pública y consideraciones de seguridad)
 
-// Administración
-function pause() external;
-function unpause() external;
-function setEthPriceFeedAddress(address newAddress) external;
-function addOrUpdateToken(address token, address priceFeed, uint8 decimals) external;
+#### 6.1 Funciones principales (con roles y errores asociados)
 
-// Vistas
-function getDepositCount() external view returns (uint256);
-function getWethAddress() external view returns (address);
-```
+| Función | Descripción | Rol requerido | Errores relevantes |
+|---|---|---|---|
+| `deposit()` | Acepta ETH nativo y acredita el saldo interno en USD | Ninguno | `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__StalePrice`, `Bank__PriceDeviation` |
+| `depositAndSwapERC20(tokenIn, amountIn, amountOutMin, deadline)` | Recibe ERC‑20, calcula ruta por WETH y realiza swap a USDC | Ninguno | `Bank__ZeroAmount`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__DepositExceedsCap`, `Bank__StalePrice`, `Bank__PriceDeviation` |
+| `withdrawToken(token, amount)` | Retira ETH o USDC hasta el límite por transacción | Ninguno | `Bank__ZeroAmount`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__TransferFailed` |
+| `pause()` | Activa el modo de pausa de emergencia | `PAUSE_MANAGER_ROLE` | — |
+| `unpause()` | Desactiva el modo de pausa | `PAUSE_MANAGER_ROLE` | — |
+| `setEthPriceFeedAddress(newAddress)` | Actualiza el oráculo ETH/USD | `CAP_MANAGER_ROLE` | — |
+| `addOrUpdateToken(token, priceFeed, decimals)` | Administra el catálogo de tokens soportados | `TOKEN_MANAGER_ROLE` | — |
+| `getDepositCount()` | Devuelve el contador de depósitos totales | Ninguno | — |
+| `getWethAddress()` | Devuelve la dirección de WETH configurada | Ninguno | — |
 
-Eventos:
+Eventos emitidos:
 ```
 event DepositSuccessful(address indexed user, address indexed token, uint256 amount);
 event WithdrawalSuccessful(address indexed user, address indexed token, uint256 amount);
 ```
 
-Errores personalizados (extracto): `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__StalePrice`, `Bank__PriceDeviation`, `Bank__TransferFailed`.
+#### 6.2 Roles del contrato (referencia)
+
+| Rol | Propósito |
+|-----|-----------|
+| `DEFAULT_ADMIN_ROLE` | Administración general y asignación de roles |
+| `CAP_MANAGER_ROLE` | Gestión de oráculo y parámetros de riesgo |
+| `PAUSE_MANAGER_ROLE` | Operaciones de pausa/despausa |
+| `TOKEN_MANAGER_ROLE` | Alta y actualización de tokens soportados |
+
+#### 6.3 Errores personalizados (referencia)
+
+| Error | Descripción breve |
+|-------|-------------------|
+| `Bank__ZeroAmount` | Valor de entrada igual a cero |
+| `Bank__DepositExceedsCap` | Límite global del banco excedido |
+| `Bank__WithdrawalExceedsLimit` | Límite por transacción superado |
+| `Bank__InsufficientBalance` | Saldo insuficiente del usuario |
+| `Bank__TokenNotSupported` | Token no habilitado en el catálogo |
+| `Bank__SlippageTooHigh` | Resultado del swap inferior al mínimo |
+| `Bank__StalePrice` | Desactualización del oráculo más allá del tiempo límite |
+| `Bank__PriceDeviation` | Desviación de precio por encima del umbral |
+| `Bank__TransferFailed` | Fallo en la transferencia del token |
 
 ### 7) Parámetros y constantes relevantes
 - `BANK_CAP_USD = 1_000_000 * 1e8`
@@ -304,8 +307,7 @@ Errores personalizados (extracto): `Bank__ZeroAmount`, `Bank__DepositExceedsCap`
 - `MAX_WITHDRAWAL_PER_TX` (immutable configurado en el constructor)
 
 ### 8) Roles y permisos
-- `DEFAULT_ADMIN_ROLE`, `CAP_MANAGER_ROLE`, `PAUSE_MANAGER_ROLE`, `TOKEN_MANAGER_ROLE`.
-- Ver tabla en [Roles y control de acceso](#-roles-y-control-de-acceso).
+Resumen en la sección [API del contrato](#6-api-del-contrato-interfaz-pública-y-consideraciones-de-seguridad).
 
 ### 9) Consideraciones de seguridad
 - Reentrancia mitigada con CEI y `ReentrancyGuard`.
@@ -325,7 +327,8 @@ Resumen en [Testing y cobertura](#-testing-y-cobertura). 43/43 tests; 66.5% lín
 
 ---
 
-## 🚀 Deploy y verificación
+<a id="deploy-y-verificacion"></a>
+## Deploy y verificación
 ```bash
 source .env
 forge script script/Deploy.s.sol:DeployScript \
@@ -338,7 +341,8 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 ---
 
-## ⛽ Gas y optimizaciones
+<a id="gas-y-optimizaciones"></a>
+## Gas y optimizaciones
 - `constant`/`immutable` para reducir SLOAD.
 - Errores personalizados en lugar de strings.
 - `unchecked` en incrementos con pre‑checks.
@@ -347,6 +351,7 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 ---
 
+<a id="roles-y-control-de-acceso"></a>
 ## 👥 Roles y control de acceso
 | Rol | Propósito |
 |-----|-----------|
@@ -357,6 +362,7 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 ---
 
+<a id="errores-personalizados"></a>
 ## ❌ Errores personalizados
 | Error | Contexto |
 |-------|----------|
@@ -372,7 +378,8 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 ---
 
-## 🚧 Limitaciones y roadmap
+<a id="limitaciones-y-roadmap"></a>
+## Limitaciones y roadmap
 | Área | Limitación |
 |------|------------|
 | Oráculos | Solo ETH/USD (sin TWAP/multi‑feed) |
@@ -385,7 +392,8 @@ Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle,
 
 ---
 
-## 📜 Licencia
+<a id="licencia"></a>
+## Licencia
 MIT
 
 <sub>Última actualización: 12 Nov 2025</sub>
