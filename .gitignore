@@ -1,6 +1,7 @@
 # Compiler files
 cache/
 out/
+abi/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -53,3 +54,30 @@ GUIA_*.md
 LIMPIE*.md
 RESUMEN_CORRECIONES*.md
 ANALISIS_TEST_FAILURES*.md
+ENTREGABLES.md
+INFORME_COMPLETO.md
+SECURITY_SLITHER.md
+DESPLIEGUE_*.md
+REPO_LIMPIO.md
+RESUMEN_LIMPIEZA.txt
+RESUMEN_FINAL_SESION.md
+ENTREGABLES.md
+DESPLIEGUE_*.md
+INFORME_COMPLETO.md
+SECURITY_SLITHER.md
+
+# Temporary deployment scripts
+deploy.sh
+deploy_wsl.sh
+call_router.sh
+*.sh
+
+# Temporary patch files
+.patch_tmp
+*.patch_tmp
+
+# ABI folder (regenerable with forge build)
+abi/
+
+# .env.example should be kept for reference
+!.env.example
