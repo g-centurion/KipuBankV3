@@ -16,18 +16,18 @@ contract DeployScript is Script {
     address private constant SEPOLIA_ETH_PRICE_FEED = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
 
     /// @dev Uniswap V2 Router en Sepolia
-    address private constant SEPOLIA_UNISWAP_V2_ROUTER = 0xeE567FE1712FAF6149d80da1E6934e354b40a054;
+    address private constant SEPOLIA_UNISWAP_V2_ROUTER = 0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3;
 
     /// @dev USDC en Sepolia (6 decimales)
-    address private constant SEPOLIA_USDC = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
+    address private constant SEPOLIA_USDC = 0x1c7d4B196CB0c6b364c3d6eB8F0708a9dA00375D;
 
     /// @dev WETH en Sepolia (recogida del router)
     // address private constant SEPOLIA_WETH = 0xfFf9976782d46CC05630D07AE6142005F2c69f1d;
 
     // ========== CONFIGURATION PARAMETERS ==========
 
-    /// @dev Límite máximo de retiro por transacción
-    uint256 private constant MAX_WITHDRAWAL_PER_TX = 100 ether;
+    /// @dev Límite máximo de retiro por transacción (1 ETH)
+    uint256 private constant MAX_WITHDRAWAL_PER_TX = 1 ether;
 
     // ========== DEPLOYMENT FUNCTION ==========
 

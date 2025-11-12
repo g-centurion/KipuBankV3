@@ -198,19 +198,19 @@ cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(b
 <details><summary><strong>Flujo General</strong></summary>
 
 ```mermaid
-flowchart LR
+graph LR
    A[Usuario] --> B{Deposita}
-   B -->|ETH| C[deposit()]
+   B -->|ETH| C[deposit]
    B -->|ERC20| D[depositAndSwapERC20]
-   C --> E[Validar Precio / Cap]
-   D --> F[Transfer + getAmountsOut + Cap]
+   C --> E[Validar Precio Cap]
+   D --> F[Transfer getAmountsOut Cap]
    E --> G[Actualizar Balance]
-   F --> H[Swap -> USDC]
+   F --> H[Swap USDC]
    G --> I[Evento DepositSuccessful]
    H --> I
    I --> J{Retirar}
    J -->|ETH/USDC| K[withdrawToken]
-   K --> L[Transfer + Evento]
+   K --> L[Transfer Evento]
 ```
 </details>
 
@@ -390,4 +390,110 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 MIT
 
 **Última actualización:** 11 Nov 2025
+
+---
+
+## 🚧 Limitaciones Actuales
+| Área | Limitación | Impacto |
+|------|------------|---------|
+| Oráculos | Solo ETH/USD (no TWAP ni multi-feed) | Riesgo ante manipulación puntual (mitigado con desviación + staleness) |
+| Swaps | Rutas fijas Token→WETH→USDC | No optimiza rutas alternativas más baratas |
+| Estabilidad | Sin control dinámico de bank cap | No ajusta riesgo según volatilidad |
+| Gobernanza | Roles simples sin Timelock/MultiSig | Cambios críticos dependen de una sola clave |
+| Auditoría | Sin reporte Slither almacenado | Requiere ejecución manual para revisar hallazgos |
+| Seguridad Extendida | Sin monitor off-chain (alerting) | Tiempos de respuesta más lentos ante incidentes |
+| Tests | Cobertura buena pero faltan stress tests gas & MEV | Riesgos de performance extremos no cuantificados |
+
+## 🛣 Roadmap Propuesto
+1. Integrar Timelock + multisig para roles críticos.
+2. Añadir soporte de múltiples oráculos y TWAP.
+3. Implementar módulos de estrategia (rebalanceo a stable baskets).
+4. Métricas de salud on-chain (exponer vista agregada de riesgo).
+5. Tests adicionales: fuzz de slippage y simulación de sandwich attack.
+6. Integración CI con Codecov y Slither en GitHub Actions.
+7. Panel frontend simplificado (balances + estado pausado + límites activos).
+
+## 📈 Cobertura Visual (Mermaid)
+```mermaid
+pie
+   title Cobertura Global Líneas
+   "Cubierto" : 73.04
+   "No cubierto" : 26.96
+```
+```mermaid
+bar
+   title Cobertura por Archivo (Líneas)
+   "KipuBankV3_TP4.sol" : 89.38
+   "KipuBankV3Test.sol" : 81.36
+```
+
+## 🔍 Análisis Estático con Slither
+### Instalación
+```bash
+sudo apt-get update
+sudo apt-get install -y python3-pip
+pip install slither-analyzer
+```
+### Ejecución Básica
+```bash
+slither .
+```
+### Reporte JSON y Markdown
+```bash
+slither . --json slither-report.json
+slither . --print contract-summary,function-summary --exclude-dependencies > slither-summary.md
+```
+### Integración con Foundry
+Slither compila con solc; si Foundry gestiona versiones, exportar:
+```bash
+forge build
+SLITHER_SOLC_ALLOW_PATHS=$(pwd) slither . --exclude-dependencies
+```
+### Clases de Issues Detectadas
+| Categoría | Ejemplos |
+|-----------|----------|
+| Reentrancia | Falta de CEI / locks |
+| Arithmetic | Over/underflow (legacy) |
+| Access Control | Funciones sin restricciones |
+| Visibility | state mutability no optimizada |
+| Gas | Bucles sobre storage, variables no usadas |
+| ERC20 | Transferencias inseguras |
+
+### Sugerencia CI (GitHub Actions)
+```yaml
+name: slither
+on: [push, pull_request]
+jobs:
+   analyze:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v4
+         - name: Install Foundry
+            run: curl -L https://foundry.paradigm.xyz | bash && source ~/.foundry/bin && foundryup
+         - name: Install Slither
+            run: sudo apt-get update && sudo apt-get install -y python3-pip && pip install slither-analyzer
+         - name: Build
+            run: forge build
+         - name: Run Slither
+            run: slither . --exclude-dependencies --print contract-summary || true
+```
+
+## 🗂 Cómo Generar Reporte HTML de Cobertura
+```bash
+forge coverage --report lcov
+sudo apt-get install -y lcov
+genhtml -o coverage-html lcov.info
+xdg-open coverage-html/index.html # Linux
+```
+
+## 🧾 Exportar Informe PDF
+Instalar pandoc:
+```bash
+sudo apt-get install -y pandoc
+```
+Generar PDF (requiere LaTeX opcional para mejor tipografía):
+```bash
+pandoc INFORME_COMPLETO.md -o INFORME_COMPLETO.pdf --from markdown --toc --highlight-style=kate
+```
+
 
