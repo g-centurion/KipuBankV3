@@ -45,172 +45,111 @@ KipuBankV3_TP4 es un contrato educativo DeFi que permite:
 
 ## 🧪 Pruebas y Cobertura
 | Métrica | Valor |
-|--------|-------|
-| Tests Passing | 47 / 47 |
-| Cobertura Líneas (global) | 73.04% |
-| Cobertura Líneas `KipuBankV3_TP4.sol` | 89.38% |
-| Branches | 69.70% |
-| Functions | 69.23% |
+<div align="center">
 
-> Alta cobertura en el contrato principal asegura trazabilidad para auditoría educativa.
+# 🏦 KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
+<strong>Contrato desplegado en Sepolia</strong>
 
----
+<sub>
+Contrato: <code>0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7</code> ·
+Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</code> ·
+<a href="https://sepolia.etherscan.io/address/0x5b7f2f853adf9730fba307dc2bd2b19ff51fcdd7#code">Etherscan</a> ·
+<a href="https://sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7">Blockscout</a>
+</sub>
 
-## 🛠 Instalación
-```bash
-git clone https://github.com/g-centurion/KipuBankV3_TP4.git
-cd KipuBankV3_TP4
-forge install
-```
-
-Configurar `.env` (NO COMMIT):
-```bash
-PRIVATE_KEY=0xTUCLAVE
-RPC_URL_SEPOLIA=https://eth-sepolia.g.alchemy.com/v2/TU_RPC_KEY
-ETHERSCAN_API_KEY=TU_KEY
-```
-
-Compilar y testear:
-```bash
-forge build
-forge test -vv
-forge coverage
-```
+</div>
 
 ---
 
-## 🚀 Deploy y Verificación
-```bash
-source .env
-forge script script/Deploy.s.sol:DeployScript \
-   --rpc-url $RPC_URL_SEPOLIA \
-   --broadcast \
-   --verify \
-   --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
-```
-Resultado: Contrato desplegado y verificado.
+## 📑 Índice
+- [Resumen ejecutivo](#-resumen-ejecutivo)
+- [Características principales](#-características-principales)
+- [Especificaciones técnicas](#-especificaciones-técnicas)
+- [Integraciones DeFi](#-integraciones-defi)
+- [Diagramas esenciales](#-diagramas-esenciales)
+- [Instalación y uso](#-instalación-y-uso)
+- [Interacción on-chain (cast)](#-interacción-on-chain-cast)
+- [Testing y cobertura](#-testing-y-cobertura)
+- [Deploy y verificación](#-deploy-y-verificación)
+- [Gas y optimizaciones](#-gas-y-optimizaciones)
+- [Roles y control de acceso](#-roles-y-control-de-acceso)
+- [Errores personalizados](#-errores-personalizados)
+- [Limitaciones y roadmap](#-limitaciones-y-roadmap)
+- [Licencia](#-licencia)
 
 ---
 
-## 📦 Guía de Uso Rápida
-
-<details><summary><strong>Depositar ETH</strong></summary>
-
-```solidity
-kipuBank.deposit{ value: 0.5 ether }();
-```
-Internamente:
-1. Valida monto > 0.
-2. Obtiene precio ETH/USD (Chainlink).
-3. Verifica desvío y staleness.
-4. Calcula valor USD y verifica bank cap.
-5. Actualiza balance y emite evento.
-</details>
-
-<details><summary><strong>Depositar ERC-20 y Swappear a USDC</strong></summary>
-
-```solidity
-erc20.approve(address(kipuBank), amountIn);
-kipuBank.depositAndSwapERC20(tokenIn, amountIn, minUSDCOut, deadline);
-```
-Checks:
-- Token permitido y distinto de ETH/USDC.
-- Slippage vía `amountOutMin`.
-- Ruta dinámica: si token es WETH usa ruta directa, si no Token→WETH→USDC.
-</details>
-
-<details><summary><strong>Retirar fondos</strong></summary>
-
-```solidity
-kipuBank.withdrawToken(address(0), 0.1 ether); // Retirar ETH
-kipuBank.withdrawToken(USDC_ADDRESS, 50e6);    // Retirar USDC (6 decimales)
-```
-Checks: límites por tx, balance suficiente, soporte de token.
-</details>
-
-<details><summary><strong>Consultar Router y WETH</strong></summary>
-
-```solidity
-kipuBank.I_ROUTER();
-kipuBank.getWethAddress();
-```
-</details>
-
-<details><summary><strong>Roles y Administración</strong></summary>
-Roles: `DEFAULT_ADMIN_ROLE`, `CAP_MANAGER_ROLE`, `PAUSE_MANAGER_ROLE`, `TOKEN_MANAGER_ROLE`.  
-Asignados en constructor al deployer.  
-Uso seguro: limita superficie de ataque y mantiene separación de responsabilidades.
-</details>
+## 🎯 Resumen ejecutivo
+KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (con swap automático a USDC), retiros con límites por transacción y validaciones robustas vía Chainlink. Integra seguridad basada en CEI, ReentrancyGuard, Pausable, AccessControl y errores personalizados.
 
 ---
 
-## 🔄 Interacción On-Chain (Foundry / cast)
-```bash
-# Max withdrawal
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
-
-# Router
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
-
-# Ver rol admin
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(bool)" \
-   0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
-   --rpc-url $RPC_URL_SEPOLIA
-```
+## 🧩 Características principales
+- Depósitos: ETH nativo y ERC-20 con conversión a USDC mediante Uniswap V2.
+- Contabilidad multi‑token con saldos internos por usuario.
+- Límite global de banco en USD y tope de retiro por transacción.
+- Validación de oráculo: staleness y desviación máxima (circuit breaker).
+- RBAC con roles separados y modo de pausa de emergencia.
+- Timelock opcional (`TimelockKipuBank.sol`) para cambios administrativos diferidos.
 
 ---
 
-## 🧱 Arquitectura y Diseño
-| Capa | Responsabilidad | Ejemplos |
-|------|-----------------|----------|
-| Interfaz Usuario | Entradas simples (deposit, withdraw) | `deposit()`, `withdrawToken()` |
-| Integración DeFi | Swaps token→USDC | `depositAndSwapERC20()` |
-| Oráculos | Precios ETH/USD y validaciones | `_getEthPriceInUsd()` |
-| Seguridad | Roles, pausas, anti-reentrancia | `AccessControl`, `Pausable`, `ReentrancyGuard` |
-| Contabilidad | Balances internos por token/usuario | `balances` mapping |
-| Validaciones | Límites, slippage, cap | Custom errors + checks |
+## 🧠 Especificaciones técnicas
 
-### Herencia y Razón
-- `AccessControl`: granularidad de permisos > `Ownable`.
-- `Pausable`: freno de emergencia ante anomalías externas.
-- `ReentrancyGuard`: patrón clásico frente a llamada externa (swap / transfer).
-- `SafeERC20`: protección frente a tokens no estándar.
+### Arquitectura (herencia, librerías e interfaces)
+- Herencia: `AccessControl`, `Pausable`, `ReentrancyGuard`.
+- Librerías: `SafeERC20`.
+- Interfaces: `IERC20`, `IUniswapV2Router02`, `AggregatorV3Interface`.
 
-### Interfaces Usadas
-- `AggregatorV3Interface` (Chainlink): datos confiables + timestamp.
-- `IUniswapV2Router02`: ejecución de swap, consulta `getAmountsOut`.
-- `IERC20`: estándar mínimo para tokens.
+### Constantes y parámetros
+- `BANK_CAP_USD = 1,000,000 * 1e8` (USD, 8 dec)
+- `PRICE_FEED_TIMEOUT = 1 hours`
+- `MAX_PRICE_DEVIATION_BPS = 500` (5%)
+- `MAX_WITHDRAWAL_PER_TX` (immutable, se define en el constructor)
 
-### Librerías y Beneficios
-- SafeERC20: evita errores silenciosos en transferencias.
-- Custom Errors: ahorro de gas vs require strings (~30–40% menos).
-- Uso de `immutable` y `constant`: reduce accesos a storage y coste de gas.
+### Módulos funcionales (TPs previos + TP4)
+- Depósitos ETH: `deposit()` con validación de precio y cap.
+- Depósitos ERC-20 con swap: `depositAndSwapERC20()` (ruta Token→WETH→USDC; o WETH→USDC).
+- Retiros: `withdrawToken(address token, uint256 amount)` (ETH o USDC).
+- Oráculos: `_getEthPriceInUsd()`, `_updateRecordedPrice()`.
+- Conversión USD: `_getUsdValueFromWei()`, `_getUsdValueFromUsdc()`.
+- Límite global: `_checkBankCap()` + `_getBankTotalUsdValue()`.
+- Métricas: `getDepositCount()`, contadores internos.
 
-### Patrones Clave
-- CEI (Checks-Effects-Interactions) en cada función pública.
-- Circuit Breaker: precio desviado/stale → revert.
-- Slippage Guard: `amountOutMin` en swaps.
+### Tokens soportados y catálogo
+- Base: ETH (address(0)) y USDC (6 dec) habilitados en constructor.
+- Extensión: `addOrUpdateToken(token, priceFeed, decimals)` bajo `TOKEN_MANAGER_ROLE`.
+
+### Timelock opcional
+- [`src/TimelockKipuBank.sol`](src/TimelockKipuBank.sol) (basado en `TimelockController` de OZ): permite programar y ejecutar cambios (p. ej., `setEthPriceFeedAddress`) con delay mínimo de 2 días.
 
 ---
 
-## 📊 Diagramas (Mermaid)
+## 🔗 Integraciones DeFi
+- Uniswap V2 Router: estimaciones con `getAmountsOut`, swap con `swapExactTokensForTokens` y ruta por WETH.
+- Chainlink: `latestRoundData()` para ETH/USD; validación de staleness y desviación contra `lastRecordedPrice`.
 
-<details><summary><strong>Flujo General</strong></summary>
+---
+
+## 🗺 Diagramas esenciales
+Se muestran los flujos clave. Los diagramas de mayor detalle (incluyendo árboles de decisión y matrices) están en [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
+
+<details><summary><strong>Flujo general</strong></summary>
 
 ```mermaid
 graph LR
    A[Usuario] --> B{Deposita}
    B -->|ETH| C[deposit]
    B -->|ERC20| D[depositAndSwapERC20]
-   C --> E[Validar Precio Cap]
-   D --> F[Transfer getAmountsOut Cap]
-   E --> G[Actualizar Balance]
-   F --> H[Swap USDC]
+   C --> E[Validar precio + cap]
+   D --> F[Transfer + getAmountsOut + cap]
+   E --> G[Actualizar saldo]
+   F --> H[Swap a USDC]
    G --> I[Evento DepositSuccessful]
    H --> I
-   I --> J{Retirar}
+   I --> J{Retiro}
    J -->|ETH/USDC| K[withdrawToken]
-   K --> L[Transfer Evento]
+   K --> L[Transfer + Evento]
 ```
 </details>
 
@@ -224,30 +163,9 @@ sequenceDiagram
    U->>C: deposit(value)
    C->>O: latestRoundData()
    O-->>C: price, updatedAt
-   C->>C: validar staleness & desviación
-   C->>C: calcular USD y comparar BANK_CAP_USD
+   C->>C: validar staleness y desviación
+   C->>C: calcular USD y comparar cap
    C->>C: actualizar balances
-   C-->>U: evento DepositSuccessful
-```
-</details>
-
-<details><summary><strong>Depósito ERC20 + Swap</strong></summary>
-
-```mermaid
-sequenceDiagram
-   participant U as Usuario
-   participant C as Contrato
-   participant R as UniswapRouter
-   U->>C: depositAndSwapERC20(tokenIn,...)
-   C->>C: checks iniciales
-   U->>C: transferFrom(tokenIn)
-   C->>R: getAmountsOut(path)
-   R-->>C: amounts[]
-   C->>C: _checkBankCap(estimado)
-   C->>R: swapExactTokensForTokens
-   R-->>C: usdcReceived
-   C->>C: validar slippage
-   C->>C: update balances
    C-->>U: evento DepositSuccessful
 ```
 </details>
@@ -268,98 +186,38 @@ flowchart TD
    F --> G{ETH?}
    G -->|Sí| H[call value]
    G -->|No| I[SafeERC20.transfer]
-   H --> J[Evento]
-   I --> J[Evento]
+   H --> J[Emitir evento]
+   I --> J[Emitir evento]
 ```
 </details>
 
-<details><summary><strong>Validación Oráculo</strong></summary>
+> Más diagramas, incluyendo validación de oráculo, catálogo de tokens, roles, pausa y timelock: ver [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
 
-```mermaid
-flowchart LR
-   A[_getEthPriceInUsd] --> B[lLatestRoundData]
-   B --> C{price > 0?}
-   C -->|No| X[REVERT]
-   C -->|Sí| D{staleness <= 1h}
-   D -->|No| Y[REVERT StalePrice]
-   D -->|Sí| E{desviación <= 5%}
-   E -->|No| Z[REVERT PriceDeviation]
-   E -->|Sí| F[return price]
+---
+
+## 🛠 Instalación y uso
+```bash
+git clone https://github.com/g-centurion/KipuBankV3_TP4.git
+cd KipuBankV3_TP4
+forge install
 ```
-</details>
 
----
+Configurar `.env` (no commitear):
+```bash
+PRIVATE_KEY=0xTUCLAVE
+RPC_URL_SEPOLIA=https://eth-sepolia.g.alchemy.com/v2/TU_RPC_KEY
+ETHERSCAN_API_KEY=TU_KEY
+```
 
-## 🛡 Seguridad y Buenas Prácticas
-| Práctica | Beneficio |
-|----------|-----------|
-| CEI Pattern | Mitiga reentrancia |
-| ReentrancyGuard | Bloquea reentradas múltiples |
-| Custom Errors | Ahorro gas y claridad de causa |
-| Slippage Check | Previene ejecución a precios adversos |
-| Stale Price Check | Evita usar datos antiguos |
-| Price Deviation | Circuit breaker ante manipulación |
-| Roles RBAC | Separación de privilegios |
-| Pausable | Control de emergencia |
-| SafeERC20 | Manejo seguro tokens no estándar |
+Compilar y probar:
+```bash
+forge build
+forge test -vv
+forge coverage
+```
 
----
-
-## ⛽ Gas y Optimizaciones
-- Uso de `constant` / `immutable` reduce SLOAD.
-- Custom errors vs strings: menor bytecode + menor refund.
-- `unchecked` en incrementos protegidos por condiciones.
-- Reutilización de memoria en paths de swap.
-- Una sola lectura de oráculo por función (no repetida).
-
-Estimaciones (educativas):
-- `deposit()`: ~70k–90k gas (oracle + cálculos).
-- `depositAndSwapERC20()`: depende del swap (rango 140k–220k).  
-
----
-
-## 👥 Roles y Control de Acceso
-| Rol | Funciones |
-|-----|-----------|
-| DEFAULT_ADMIN_ROLE | Gestión total y asignación de roles |
-| CAP_MANAGER_ROLE | Cambiar price feed ETH, futuro ajuste de límites |
-| PAUSE_MANAGER_ROLE | pause / unpause |
-| TOKEN_MANAGER_ROLE | addOrUpdateToken |
-
-> Elección: AccessControl > Ownable para claridad y escalabilidad multi-rol.
-
----
-
-## ❌ Errores Personalizados
-| Error | Contexto |
-|-------|----------|
-| Bank__ZeroAmount | Entradas numéricas vacías |
-| Bank__DepositExceedsCap | Bank cap excedido |
-| Bank__WithdrawalExceedsLimit | Límite por TX superado |
-| Bank__InsufficientBalance | Usuario no tiene saldo suficiente |
-| Bank__TokenNotSupported | Token fuera de catálogo |
-| Bank__SlippageTooHigh | Resultado < mínimo esperado |
-| Bank__StalePrice | Oráculo desactualizado > TIMEOUT |
-| Bank__PriceDeviation | Precio fuera de rango permitido |
-| Bank__TransferFailed | Fallo bajo nivel en transferencias |
-
----
-
-## 👶 Decisiones de Diseño Explicadas para Principiantes
-1. "¿Por qué usar USDC como reserva?" → Estable y fácil de valuación en dólares; simplifica cálculos de riesgo.  
-2. "¿Por qué pasar por WETH en swaps?" → Uniswap V2 usa pares; WETH actúa de puente universal.  
-3. "¿Por qué separar roles?" → Minimiza daño si una clave se compromete.  
-4. "¿Por qué validar precio de oráculo dos veces (stale + desviación)?" → Staleness evita datos viejos; desviación detecta manipulación.  
-5. "¿Por qué custom errors?" → Más baratos y claros para auditoría.  
-6. "¿Por qué CEI?" → Evita que, si una llamada externa reingresa, manipule estado ya actualizado.  
-7. "¿Por qué límite por retiro?" → Control de drenaje rápido ante bug.  
-
----
-
-## 📂 Script de Interacción (Foundry)
-Archivo: `script/Interact.s.sol`  
-Incluye ejemplos simulados de depósito y lectura de variables.  
-Ejecución (simulada):
+### Script de interacción (dry‑run)
+Archivo: `script/Interact.s.sol`
 ```bash
 source .env
 forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vvvv --dry-run
@@ -367,133 +225,132 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 ---
 
-## 🧾 Entrega para Profesor
-| Item | Valor |
-|------|-------|
-| Dirección Contrato | 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 |
-| Hash Despliegue | 0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71 |
-| Etherscan | https://sepolia.etherscan.io/address/0x5b7f2f853adf9730fba307dc2bd2b19ff51fcdd7#code |
-| Blockscout | https://sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 |
-| Funciones Clave | deposit, depositAndSwapERC20, withdrawToken |
-| Seguridad | CEI, ReentrancyGuard, RBAC, Pausable, Slippage, Oracle Checks |
-| Oráculos | Chainlink ETH/USD con staleness + desviación |
-| DEX | Uniswap V2 Router (ruta Token→WETH→USDC) |
-| Roles | Admin, Cap, Pause, Token Manager |
-| Tests | 47 passing / 73% cobertura líneas |
-| Fecha | 11 Nov 2025 |
+## 🔄 Interacción on-chain (cast)
+```bash
+# Max withdrawal
+cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
 
-🎓 El diseño busca balance entre claridad pedagógica y realismo técnico.
+# Router
+cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
+
+# Ver rol admin
+cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(bool)" \
+   0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
+   --rpc-url $RPC_URL_SEPOLIA
+```
+
+---
+
+## 🧪 Testing y cobertura
+- Framework: Foundry (forge-std/Test).
+- Tipos de pruebas: unitarias, integración (router/oráculo mocked), fuzzing, eventos, control de acceso y escenarios multi‑usuario.
+
+### Resumen de resultados
+| Métrica | Valor |
+|--------|-------|
+| Tests passing | 47 / 47 |
+| Cobertura global (líneas) | 73.04% |
+| `KipuBankV3_TP4.sol` (líneas) | 89.38% |
+| Branches | 69.70% |
+| Functions | 69.23% |
+
+```mermaid
+pie
+   title Cobertura Global (líneas)
+   "Cubierto" : 73.04
+   "No cubierto" : 26.96
+```
+
+#### Cobertura por archivo (líneas)
+
+| Archivo | Cobertura |
+|---------|-----------|
+| `src/KipuBankV3_TP4.sol` | 89.38% |
+| `test/KipuBankV3Test.sol` | 81.36% |
+
+### Áreas cubiertas por los tests
+- Depósito de ETH y validación de cap y precio.
+- Swap ERC‑20→USDC con slippage mínimo y ruta WETH.
+- Retiro con límites y manejo de errores personalizados.
+- Pausa/despausa y verificación de roles (grant/revoke, unauthorized).
+- Fuzzing de montos y secuencias de operaciones.
+- Emisión de eventos y contadores (`getDepositCount`).
+
+### Generar reporte HTML de cobertura (opcional, local)
+```bash
+forge coverage --report lcov
+sudo apt-get install -y lcov
+genhtml -o coverage-html lcov.info
+```
+
+---
+
+## 🚀 Deploy y verificación
+```bash
+source .env
+forge script script/Deploy.s.sol:DeployScript \
+   --rpc-url $RPC_URL_SEPOLIA \
+   --broadcast \
+   --verify \
+   --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
+```
+Resultado: contrato desplegado y verificado en Sepolia.
+
+---
+
+## ⛽ Gas y optimizaciones
+- `constant`/`immutable` para reducir SLOAD.
+- Errores personalizados en lugar de strings.
+- `unchecked` en incrementos con pre‑checks.
+- Una sola lectura de oráculo por función.
+- Reutilización de memoria en rutas de swap.
+
+---
+
+## 👥 Roles y control de acceso
+| Rol | Propósito |
+|-----|-----------|
+| DEFAULT_ADMIN_ROLE | Gestión total y asignación de roles |
+| CAP_MANAGER_ROLE | Cambios de feed/params de riesgo |
+| PAUSE_MANAGER_ROLE | `pause` / `unpause` |
+| TOKEN_MANAGER_ROLE | Alta/actualización de tokens soportados |
+
+---
+
+## ❌ Errores personalizados
+| Error | Contexto |
+|-------|----------|
+| Bank__ZeroAmount | Entradas numéricas vacías |
+| Bank__DepositExceedsCap | Bank cap excedido |
+| Bank__WithdrawalExceedsLimit | Límite por TX superado |
+| Bank__InsufficientBalance | Saldo insuficiente |
+| Bank__TokenNotSupported | Token fuera de catálogo |
+| Bank__SlippageTooHigh | Resultado < mínimo esperado |
+| Bank__StalePrice | Oráculo desactualizado > TIMEOUT |
+| Bank__PriceDeviation | Desviación > tolerancia |
+| Bank__TransferFailed | Fallo de transferencia |
+
+---
+
+## 🚧 Limitaciones y roadmap
+| Área | Limitación |
+|------|------------|
+| Oráculos | Solo ETH/USD (sin TWAP/multi‑feed) |
+| Swaps | Ruta fija Token→WETH→USDC |
+| Gobernanza | Timelock opcional, sin multisig |
+| Auditoría | Slither debe ejecutarse localmente |
+| Tests | Faltan stress tests de gas/MEV |
+
+Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle, módulos de estrategia y CI con cobertura y Slither.
 
 ---
 
 ## 📜 Licencia
 MIT
 
-**Última actualización:** 11 Nov 2025
+<sub>Última actualización: 12 Nov 2025</sub>
+
 
 ---
-
-## 🚧 Limitaciones Actuales
-| Área | Limitación | Impacto |
-|------|------------|---------|
-| Oráculos | Solo ETH/USD (no TWAP ni multi-feed) | Riesgo ante manipulación puntual (mitigado con desviación + staleness) |
-| Swaps | Rutas fijas Token→WETH→USDC | No optimiza rutas alternativas más baratas |
-| Estabilidad | Sin control dinámico de bank cap | No ajusta riesgo según volatilidad |
-| Gobernanza | Roles simples sin Timelock/MultiSig | Cambios críticos dependen de una sola clave |
-| Auditoría | Sin reporte Slither almacenado | Requiere ejecución manual para revisar hallazgos |
-| Seguridad Extendida | Sin monitor off-chain (alerting) | Tiempos de respuesta más lentos ante incidentes |
-| Tests | Cobertura buena pero faltan stress tests gas & MEV | Riesgos de performance extremos no cuantificados |
-
-## 🛣 Roadmap Propuesto
-1. Integrar Timelock + multisig para roles críticos.
-2. Añadir soporte de múltiples oráculos y TWAP.
-3. Implementar módulos de estrategia (rebalanceo a stable baskets).
-4. Métricas de salud on-chain (exponer vista agregada de riesgo).
-5. Tests adicionales: fuzz de slippage y simulación de sandwich attack.
-6. Integración CI con Codecov y Slither en GitHub Actions.
-7. Panel frontend simplificado (balances + estado pausado + límites activos).
-
-## 📈 Cobertura Visual (Mermaid)
-```mermaid
-pie
-   title Cobertura Global Líneas
-   "Cubierto" : 73.04
-   "No cubierto" : 26.96
-```
-```mermaid
-bar
-   title Cobertura por Archivo (Líneas)
-   "KipuBankV3_TP4.sol" : 89.38
-   "KipuBankV3Test.sol" : 81.36
-```
-
-## 🔍 Análisis Estático con Slither
-### Instalación
-```bash
-sudo apt-get update
-sudo apt-get install -y python3-pip
-pip install slither-analyzer
-```
-### Ejecución Básica
-```bash
-slither .
-```
-### Reporte JSON y Markdown
-```bash
-slither . --json slither-report.json
-slither . --print contract-summary,function-summary --exclude-dependencies > slither-summary.md
-```
-### Integración con Foundry
-Slither compila con solc; si Foundry gestiona versiones, exportar:
-```bash
-forge build
-SLITHER_SOLC_ALLOW_PATHS=$(pwd) slither . --exclude-dependencies
-```
-### Clases de Issues Detectadas
-| Categoría | Ejemplos |
-|-----------|----------|
-| Reentrancia | Falta de CEI / locks |
-| Arithmetic | Over/underflow (legacy) |
-| Access Control | Funciones sin restricciones |
-| Visibility | state mutability no optimizada |
-| Gas | Bucles sobre storage, variables no usadas |
-| ERC20 | Transferencias inseguras |
-
-### Sugerencia CI (GitHub Actions)
-```yaml
-name: slither
-on: [push, pull_request]
-jobs:
-   analyze:
-      runs-on: ubuntu-latest
-      steps:
-         - uses: actions/checkout@v4
-         - name: Install Foundry
-            run: curl -L https://foundry.paradigm.xyz | bash && source ~/.foundry/bin && foundryup
-         - name: Install Slither
-            run: sudo apt-get update && sudo apt-get install -y python3-pip && pip install slither-analyzer
-         - name: Build
-            run: forge build
-         - name: Run Slither
-            run: slither . --exclude-dependencies --print contract-summary || true
-```
-
-## 🗂 Cómo Generar Reporte HTML de Cobertura
-```bash
-forge coverage --report lcov
-sudo apt-get install -y lcov
-genhtml -o coverage-html lcov.info
-xdg-open coverage-html/index.html # Linux
-```
-
-## 🧾 Exportar Informe PDF
-Instalar pandoc:
-```bash
-sudo apt-get install -y pandoc
-```
-Generar PDF (requiere LaTeX opcional para mejor tipografía):
-```bash
-pandoc INFORME_COMPLETO.md -o INFORME_COMPLETO.pdf --from markdown --toc --highlight-style=kate
-```
 
 

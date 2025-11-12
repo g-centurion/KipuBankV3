@@ -1,5 +1,23 @@
 # Diagramas de Flujo - KipuBankV3
 
+Este documento contiene los diagramas completos del sistema. En el README solo se muestran los esenciales; aquí se listan los flujos extendidos y módulos administrativos.
+
+## Índice
+- [1. Flujo General del Sistema](#1-flujo-general-del-sistema)
+- [2. Flujo Detallado: Depósito de ETH](#2-flujo-detallado-depósito-de-eth)
+- [3. Flujo Detallado: Depósito con Swap](#3-flujo-detallado-depósito-con-swap)
+- [4. Flujo Detallado: Retiro](#4-flujo-detallado-retiro)
+- [5. Validación de Precios (Oracle Check)](#5-validación-de-precios-oracle-check)
+- [6. Ciclo de Vida de una Transacción](#6-ciclo-de-vida-de-una-transacción)
+- [7. Matriz de Validación de Entrada](#7-matriz-de-validación-de-entrada)
+- [8. Manejo de Errores - Árbol de Decisión](#8-manejo-de-errores---árbol-de-decisión)
+- [9. Secuencia de Seguridad: CEI Pattern](#9-secuencia-de-seguridad-cei-pattern)
+- [10. Catálogo de Tokens: Alta/Actualización](#10-catálogo-de-tokens-altaactualización)
+- [11. Pausa y Reanudación](#11-pausa-y-reanudación)
+- [12. Gestión de Roles (AccessControl)](#12-gestión-de-roles-accesscontrol)
+- [13. Timelock: Proponer, Programar y Ejecutar](#13-timelock-proponer-programar-y-ejecutar)
+- [14. Verificación Límite Global (_checkBankCap)](#14-verificación-límite-global-_checkbankcap)
+
 ## 1. Flujo General del Sistema
 
 ```
@@ -741,3 +759,100 @@ FUNCIÓN SEGURA (CEI - Checks Effects Interactions)
 ---
 
 **Documentación generada:** 10 de Noviembre de 2025
+
+---
+
+## 10. Catálogo de Tokens: Alta/Actualización
+
+```
+┌─ addOrUpdateToken(token, priceFeed, decimals) ───────────────┐
+│                                                              │
+│  REQUIERE: caller tiene TOKEN_MANAGER_ROLE                  │
+└───────────┬──────────────────────────────────────────────────┘
+                  │
+                  ▼
+      ┌──────────────────────────┐
+      │ ¿token != address(0)?    │
+      └──────────┬───────────────┘
+                      │
+            ┌──────┴───────┐
+            │              │
+          NO             SÍ
+            │              │
+      REVERT       ┌─────────────────────────────┐
+ (InvalidToken)  │ sTokenCatalog[token] = {    │
+                         │   priceFeed, decimals,      │
+                         │   isAllowed: true           │
+                         │ }                           │
+                         └─────────────────────────────┘
+```
+
+---
+
+## 11. Pausa y Reanudación
+
+```
+┌─ pause() / unpause() ──────────────────────────────┐
+│                                                     │
+│ REQUIERE: caller tiene PAUSE_MANAGER_ROLE          │
+└──────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+             ┌─────────────────────┐
+             │   _pause()/_unpause │
+             └─────────────────────┘
+                              │
+                              ▼
+                Estado pausado / activo
+```
+
+---
+
+## 12. Gestión de Roles (AccessControl)
+
+```
+DEFAULT_ADMIN_ROLE puede:
+   ├─ grantRole(X_ROLE, account)
+   └─ revokeRole(X_ROLE, account)
+
+CAP_MANAGER_ROLE:
+   └─ setEthPriceFeedAddress(newFeed)
+
+PAUSE_MANAGER_ROLE:
+   ├─ pause()
+   └─ unpause()
+
+TOKEN_MANAGER_ROLE:
+   └─ addOrUpdateToken(token, priceFeed, decimals)
+```
+
+---
+
+## 13. Timelock: Proponer, Programar y Ejecutar
+
+```
+┌─ TimelockKipuBank (OZ TimelockController) ───────────────────────────┐
+│ MIN_DELAY = 2 días                                                   │
+├──────────────────────────────────────────────────────────────────────┤
+│ 1) Propose: proposePriceFeedChange(bank, newFeed)                    │
+│    └─ schedule(... setEthPriceFeedAddress(newFeed) ...)              │
+│ 2) Esperar DELAY                                                     │
+│ 3) Execute: executePriceFeedChange(bank, newFeed, salt)              │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 14. Verificación Límite Global (_checkBankCap)
+
+```
+┌─ _checkBankCap(pendingUsd) ──────────────────────────────────────────┐
+│ total = _getBankTotalUsdValue(pendingUsd)                            │
+│ ¿total <= BANK_CAP_USD?                                             │
+├───────────────┬──────────────────────────────────────────────────────┤
+│ NO            │ SÍ                                                   │
+│               │                                                      │
+│ REVERT        │ continuar                                            │
+│ (DepositExceedsCap)                                                  │
+└───────────────┴──────────────────────────────────────────────────────┘
+```
