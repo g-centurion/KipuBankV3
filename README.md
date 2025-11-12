@@ -1,50 +1,4 @@
-<div align="center">
-
-# 🏦 KipuBankV3_TP4 – Banco DeFi Educativo con Swaps y Oráculos
-## Trabajo Práctico Nº 4 – Solidity Avanzado
-
-**Estado:** ✅ Completado y verificado en Sepolia  
-**Contrato:** `0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7`  
-**Tx Hash:** `0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71`  
-**Etherscan:** https://sepolia.etherscan.io/address/0x5b7f2f853adf9730fba307dc2bd2b19ff51fcdd7#code  
-**Blockscout:** (puede demorar indexación) https://sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7  
-
-</div>
-
----
-
-## 📑 Índice Rápido
-- [Resumen Ejecutivo](#-resumen-ejecutivo)
-- [Guía de Uso](#-guía-de-uso-rápida)
-- [Interacción On-Chain (Foundry / cast)](#-interacción-on-chain-foundry--cast)
-- [Arquitectura y Diseño](#-arquitectura-y-diseño)
-- [Diagramas (Mermaid)](#-diagramas-mermaid)
-- [Seguridad y Buenas Prácticas](#-seguridad-y-buenas-prácticas)
-- [Gas y Optimización](#-gas-y-optimizaciones)
-- [Roles y Control de Acceso](#-roles-y-control-de-acceso)
-- [Errores Personalizados](#-errores-personalizados)
-- [Pruebas y Cobertura](#-pruebas-y-cobertura)
-- [Decisiones de Diseño Explicadas para Principiantes](#-decisiones-de-diseño-explicadas-para-principiantes)
-- [Deploy y Verificación](#-deploy-y-verificación)
-- [Entrega para Profesor](#-entrega-para-profesor)
-
----
-
-## 🎯 Resumen Ejecutivo
-KipuBankV3_TP4 es un contrato educativo DeFi que permite:
-1. Depósitos de ETH nativo.  
-2. Depósitos de cualquier ERC-20 soportado con swap automático a USDC vía Uniswap V2.  
-3. Retiros controlados con límite por transacción.  
-4. Validación de precios Chainlink con chequeos de staleness y desviación (circuit breaker).  
-5. Protección CEI, ReentrancyGuard, Custom Errors y Slippage.  
-6. Catálogo de tokens extensible y roles RBAC para administración segura.  
-
-> Objetivo pedagógico: Mostrar una integración completa (tokens + oráculos + DEX + seguridad) siguiendo buenas prácticas profesionales.
-
----
-
-## 🧪 Pruebas y Cobertura
-| Métrica | Valor |
+ 
 <div align="center">
 
 # 🏦 KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
@@ -54,7 +8,7 @@ KipuBankV3_TP4 es un contrato educativo DeFi que permite:
 Contrato: <code>0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7</code> ·
 Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</code> ·
 <a href="https://sepolia.etherscan.io/address/0x5b7f2f853adf9730fba307dc2bd2b19ff51fcdd7#code">Etherscan</a> ·
-<a href="https://sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7">Blockscout</a>
+<a href="https://eth-sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7">Blockscout</a>
 </sub>
 
 </div>
