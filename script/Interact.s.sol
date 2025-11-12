@@ -15,7 +15,7 @@ contract InteractScript is Script {
     address constant KIPU_BANK_ADDRESS = 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7;
 
     // Dirección USDC Sepolia usada dentro del contrato (para lecturas de balance)
-    address constant USDC_ADDRESS = 0x1c7d4B196CB0c6b364c3d6eB8F0708a9dA00375D;
+    address constant USDC_ADDRESS = 0x1c7d4B196CB0c6b364c3d6eB8F0708a9dA00375D; // Corrected: No invalid characters
 
     function run() external {
         // Obtiene clave privada desde entorno (formato uint con prefijo 0x en .env)
