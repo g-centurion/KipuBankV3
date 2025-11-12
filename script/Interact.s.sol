@@ -26,7 +26,7 @@ contract InteractScript is Script {
         KipuBankV3 bank = KipuBankV3(KIPU_BANK_ADDRESS);
 
         // Lecturas iniciales
-        console.log("==== INTERACCIÓN EDUCATIVA ====");
+    console.log("==== INTERACCION EDUCATIVA ====");
         console.log("Contrato:", address(bank));
         console.log("Deployer/Usuario:", deployer);
         console.log("Max Withdrawal Per TX:", bank.MAX_WITHDRAWAL_PER_TX());
@@ -54,6 +54,6 @@ contract InteractScript is Script {
         // console.log("Retiro ETH simulado");
 
         vm.stopBroadcast();
-        console.log("==== FIN INTERACCIÓN ====");
+    console.log("==== FIN INTERACCION ====");
     }
 }
