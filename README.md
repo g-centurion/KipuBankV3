@@ -70,6 +70,7 @@ Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</co
 - [Instalación y uso](#-instalación-y-uso)
 - [Interacción on-chain (cast)](#-interacción-on-chain-cast)
 - [Testing y cobertura](#-testing-y-cobertura)
+- [Entregable TP4 (formato oficial)](#-entregable-tp4-formato-oficial)
 - [Deploy y verificación](#-deploy-y-verificación)
 - [Gas y optimizaciones](#-gas-y-optimizaciones)
 - [Roles y control de acceso](#-roles-y-control-de-acceso)
@@ -282,6 +283,88 @@ forge coverage --report lcov
 sudo apt-get install -y lcov
 genhtml -o coverage-html lcov.info
 ```
+
+---
+
+## 📦 Entregable TP4 (formato oficial)
+Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
+
+### 1) Objetivo
+Implementar un “banco” DeFi educativo que acepte depósitos de ETH y ERC‑20, realice swap automático a USDC vía Uniswap V2, exponga retiros con límite por transacción y valide precios con Chainlink (staleness + desviación), aplicando buenas prácticas de seguridad.
+
+### 2) Requisitos funcionales implementados
+- Depósito de ETH: `deposit()` con cálculo de valor USD y verificación de `BANK_CAP_USD`.
+- Depósito de ERC‑20 con swap a USDC: `depositAndSwapERC20(tokenIn, amountIn, amountOutMin, deadline)`; ruta Token→WETH→USDC (o WETH→USDC).
+- Retiros: `withdrawToken(token, amount)` para ETH y USDC, con límite `MAX_WITHDRAWAL_PER_TX`.
+- Catálogo de tokens: alta/actualización mediante `addOrUpdateToken` (rol `TOKEN_MANAGER_ROLE`).
+- Emisión de eventos: `DepositSuccessful`, `WithdrawalSuccessful`.
+
+### 3) Requisitos no funcionales
+- Seguridad: CEI, `ReentrancyGuard`, `Pausable`, `AccessControl`, `SafeERC20`, errores personalizados.
+- Oráculos: validación de staleness (`PRICE_FEED_TIMEOUT`) y desviación (`MAX_PRICE_DEVIATION_BPS`).
+- Observabilidad: eventos y contadores (`getDepositCount`).
+
+### 4) Arquitectura y diagramas
+- Herencia y librerías: `AccessControl`, `Pausable`, `ReentrancyGuard`, `SafeERC20`.
+- Integraciones: `IUniswapV2Router02`, `AggregatorV3Interface`.
+- Diagramas detallados: ver [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
+
+### 5) Contratos y direcciones
+- Red: Sepolia
+- Contrato principal: `0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7`
+- Verificación: Etherscan y Blockscout enlazados en el encabezado.
+
+### 6) API del contrato (públicas/external)
+Funciones principales:
+```
+function deposit() external payable;
+function depositAndSwapERC20(address tokenIn, uint256 amountIn, uint256 amountOutMin, uint48 deadline) external;
+function withdrawToken(address tokenAddress, uint256 amountToWithdraw) external;
+
+// Administración
+function pause() external;
+function unpause() external;
+function setEthPriceFeedAddress(address newAddress) external;
+function addOrUpdateToken(address token, address priceFeed, uint8 decimals) external;
+
+// Vistas
+function getDepositCount() external view returns (uint256);
+function getWethAddress() external view returns (address);
+```
+
+Eventos:
+```
+event DepositSuccessful(address indexed user, address indexed token, uint256 amount);
+event WithdrawalSuccessful(address indexed user, address indexed token, uint256 amount);
+```
+
+Errores personalizados (extracto): `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__StalePrice`, `Bank__PriceDeviation`, `Bank__TransferFailed`.
+
+### 7) Parámetros y constantes relevantes
+- `BANK_CAP_USD = 1_000_000 * 1e8`
+- `PRICE_FEED_TIMEOUT = 1 hours`
+- `MAX_PRICE_DEVIATION_BPS = 500`
+- `MAX_WITHDRAWAL_PER_TX` (immutable configurado en el constructor)
+
+### 8) Roles y permisos
+- `DEFAULT_ADMIN_ROLE`, `CAP_MANAGER_ROLE`, `PAUSE_MANAGER_ROLE`, `TOKEN_MANAGER_ROLE`.
+- Ver tabla en [Roles y control de acceso](#-roles-y-control-de-acceso).
+
+### 9) Consideraciones de seguridad
+- Reentrancia mitigada con CEI y `ReentrancyGuard`.
+- Oráculo: staleness/desviación + actualización de `lastRecordedPrice`.
+- Slippage: parámetro `amountOutMin` y chequeo posterior al swap.
+- Límite por retiro y cap global del banco en USD.
+
+### 10) Despliegue y verificación
+Comandos en [Deploy y verificación](#-deploy-y-verificación).
+
+### 11) Pruebas y cobertura
+Resumen en [Testing y cobertura](#-testing-y-cobertura). 47/47 tests; 73.04% líneas global; 89.38% en contrato principal.
+
+### 12) Conclusiones y mejoras
+- El contrato cumple los requisitos del TP4 con foco en seguridad y trazabilidad.
+- Pendientes sugeridos: TWAP/multi‑feed, multisig+timelock operativo, pruebas de gas y MEV extendidas.
 
 ---
 
