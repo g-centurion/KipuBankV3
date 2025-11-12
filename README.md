@@ -203,25 +203,28 @@ cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(b
 ### Resumen de resultados
 | Métrica | Valor |
 |--------|-------|
-| Tests passing | 47 / 47 |
-| Cobertura global (líneas) | 73.04% |
-| `KipuBankV3_TP4.sol` (líneas) | 89.38% |
-| Branches | 69.70% |
-| Functions | 69.23% |
+| Tests passing | 43 / 43 |
+| Cobertura global (líneas) | 66.5% |
+| Cobertura global (funciones) | 67.5% |
+| `KipuBankV3_TP4.sol` (líneas) | 89.38% (101/113) |
+| `KipuBankV3_TP4.sol` (funciones) | 88.24% (15/17) |
 
 ```mermaid
 pie
    title Cobertura Global (líneas)
-   "Cubierto" : 73.04
-   "No cubierto" : 26.96
+   "Cubierto" : 66.5
+   "No cubierto" : 33.5
 ```
 
 #### Cobertura por archivo (líneas)
 
-| Archivo | Cobertura |
-|---------|-----------|
-| `src/KipuBankV3_TP4.sol` | 89.38% |
-| `test/KipuBankV3Test.sol` | 81.36% |
+| Archivo | Líneas | Cobertura |
+|---------|--------|-----------|
+| `src/KipuBankV3_TP4.sol` | 101/113 | 89.38% |
+| `test/KipuBankV3Test.sol` | 48/59 | 81.36% |
+| `script/Deploy.s.sol` | 0/26 | 0% (no ejecutado en tests) |
+| `script/Interact.s.sol` | 0/20 | 0% (no ejecutado en tests) |
+| `src/TimelockKipuBank.sol` | 0/6 | 0% (sin tests específicos) |
 
 ### Áreas cubiertas por los tests
 - Depósito de ETH y validación de cap y precio.
@@ -314,7 +317,7 @@ Errores personalizados (extracto): `Bank__ZeroAmount`, `Bank__DepositExceedsCap`
 Comandos en [Deploy y verificación](#-deploy-y-verificación).
 
 ### 11) Pruebas y cobertura
-Resumen en [Testing y cobertura](#-testing-y-cobertura). 47/47 tests; 73.04% líneas global; 89.38% en contrato principal.
+Resumen en [Testing y cobertura](#-testing-y-cobertura). 43/43 tests; 66.5% líneas global; 89.38% en contrato principal.
 
 ### 12) Conclusiones y mejoras
 - El contrato cumple los requisitos del TP4 con foco en seguridad y trazabilidad.
