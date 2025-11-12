@@ -12,10 +12,11 @@ lcov.info
 *.lcov
 
 # Docs
-# Ignora todo en docs/ salvo el informe educativo
+# Ignora todo en docs/ salvo el informe educativo (MD y PDF)
 # (permitimos versionar este informe pedagógico)
 docs/**
 !docs/Informe_Educativo_KipuBankV3_TP4.md
+!docs/Informe_Educativo_KipuBankV3_TP4.pdf
 
 # Dotenv file
 .env
