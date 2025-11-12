@@ -104,7 +104,7 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 ---
 
 <a id="diagramas-esenciales"></a>
-<details>
+<details open>
 <summary><h2>Diagramas esenciales</h2></summary>
 
 Todos los diagramas del sistema están aquí para entender el funcionamiento completo sin necesidad de consultar archivos externos.
@@ -280,17 +280,16 @@ flowchart LR
 <details><summary><strong>10. Ciclo completo de transacción</strong></summary>
 
 ```mermaid
-stateDiagram-v2
-   [*] --> Preparar: Usuario inicia
-   Preparar --> Firmar: Estimar gas
-   Firmar --> Mempool: Enviar TX
-   Mempool --> Validar: Minero incluye
-   Validar --> Ejecutar: Checks OK
-   Ejecutar --> Confirmar: Effects + Interactions
-   Confirmar --> [*]: Evento emitido
-   
-   Validar --> Revert: Checks fallan
-   Revert --> [*]: TX revertida
+flowchart TD
+   Start([Usuario inicia]) --> Preparar[Preparar TX]
+   Preparar -->|Estimar gas| Firmar[Firmar en wallet]
+   Firmar -->|Enviar TX| Mempool[TX en Mempool]
+   Mempool -->|Minero incluye| Validar{Validar Checks}
+   Validar -->|Checks OK| Ejecutar[Ejecutar: Effects]
+   Ejecutar --> Confirmar[Interactions: Transfer/Eventos]
+   Confirmar --> Success([TX Confirmada])
+   Validar -->|Checks fallan| Revert[REVERT]
+   Revert --> Failed([TX Revertida])
 ```
 </details>
 
