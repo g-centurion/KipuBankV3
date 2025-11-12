@@ -330,6 +330,9 @@ source .env
 forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vvvv --dry-run
 ```
 
+#### Guía de frontend
+- Ver [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md): guía práctica para integrar el contrato en una aplicación web. Incluye conexión con ethers/viem, ejemplos de lectura/escritura, suscripción a eventos y manejo de errores.
+
 </details>
 
 ---
@@ -506,6 +509,9 @@ Resumen en la sección [API del contrato](#6-api-del-contrato-interfaz-pública-
 - Slippage: parámetro `amountOutMin` y chequeo posterior al swap.
 - Límite por retiro y cap global del banco en USD.
 
+- Material para auditoría: ver [AUDITOR_GUIDE.md](AUDITOR_GUIDE.md) con flujos críticos, checklist de seguridad y pruebas recomendadas.
+- Modelo de amenazas: ver [THREAT_MODEL.md](THREAT_MODEL.md) con riesgos priorizados, escenarios y mitigaciones aplicadas.
+
 ### 10) Despliegue y verificación
 Comandos en [Deploy y verificación](#deploy-y-verificacion).
 
@@ -533,6 +539,8 @@ forge script script/Deploy.s.sol:DeployScript \
    --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
 ```
 Resultado: contrato desplegado y verificado en Sepolia.
+
+- Ejemplo de deploy: [`script/Deploy.s.sol`](script/Deploy.s.sol) documenta direcciones de Sepolia, parámetros clave (feeds, router, `MAX_WITHDRAWAL_PER_TX`) y logs de despliegue para reproducibilidad.
 
 </details>
 
