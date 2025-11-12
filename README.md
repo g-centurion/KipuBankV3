@@ -33,13 +33,19 @@ Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</co
 ---
 
 <a id="resumen-ejecutivo"></a>
-## Resumen ejecutivo
+<details open>
+<summary><h2>Resumen ejecutivo</h2></summary>
+
 KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (con swap automático a USDC), retiros con límites por transacción y validaciones robustas vía Chainlink. Integra seguridad basada en CEI, ReentrancyGuard, Pausable, AccessControl y errores personalizados.
+
+</details>
 
 ---
 
 <a id="caracteristicas-principales"></a>
-## Características principales
+<details open>
+<summary><h2>Características principales</h2></summary>
+
 - Depósitos: ETH nativo y ERC-20 con conversión a USDC mediante Uniswap V2.
 - Contabilidad multi‑token con saldos internos por usuario.
 - Límite global de banco en USD y tope de retiro por transacción.
@@ -47,10 +53,13 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 - RBAC con roles separados y modo de pausa de emergencia.
 - Timelock opcional (`TimelockKipuBank.sol`) para cambios administrativos diferidos.
 
+</details>
+
 ---
 
 <a id="especificaciones-tecnicas"></a>
-## Especificaciones técnicas
+<details>
+<summary><h2>Especificaciones técnicas</h2></summary>
 
 ### Arquitectura (herencia, librerías e interfaces)
 - Herencia: `AccessControl`, `Pausable`, `ReentrancyGuard`.
@@ -79,17 +88,25 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 ### Timelock opcional
 - [`src/TimelockKipuBank.sol`](src/TimelockKipuBank.sol) (basado en `TimelockController` de OZ): permite programar y ejecutar cambios (p. ej., `setEthPriceFeedAddress`) con delay mínimo de 2 días.
 
+</details>
+
 ---
 
 <a id="integraciones-defi"></a>
-## Integraciones DeFi
+<details>
+<summary><h2>Integraciones DeFi</h2></summary>
+
 - Uniswap V2 Router: estimaciones con `getAmountsOut`, swap con `swapExactTokensForTokens` y ruta por WETH.
 - Chainlink: `latestRoundData()` para ETH/USD; validación de staleness y desviación contra `lastRecordedPrice`.
+
+</details>
 
 ---
 
 <a id="diagramas-esenciales"></a>
-## Diagramas esenciales
+<details>
+<summary><h2>Diagramas esenciales</h2></summary>
+
 Se muestran los flujos clave. Los diagramas de mayor detalle (incluyendo árboles de decisión y matrices) están en [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
 
 <details><summary><strong>Flujo general</strong></summary>
@@ -151,10 +168,14 @@ flowchart TD
 
 > Más diagramas, incluyendo validación de oráculo, catálogo de tokens, roles, pausa y timelock: ver [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
 
+</details>
+
 ---
 
 <a id="instalacion-y-uso"></a>
-## Instalación y uso
+<details>
+<summary><h2>Instalación y uso</h2></summary>
+
 ```bash
 git clone https://github.com/g-centurion/KipuBankV3_TP4.git
 cd KipuBankV3_TP4
@@ -182,10 +203,14 @@ source .env
 forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vvvv --dry-run
 ```
 
+</details>
+
 ---
 
 <a id="interaccion-on-chain-cast"></a>
-## Interacción on-chain (cast)
+<details>
+<summary><h2>Interacción on-chain (cast)</h2></summary>
+
 ```bash
 # Max withdrawal
 cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
@@ -199,10 +224,15 @@ cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(b
    --rpc-url $RPC_URL_SEPOLIA
 ```
 
+</details>
+
 ---
 
 <a id="testing-y-cobertura"></a>
-## Testing y cobertura
+<details>
+<summary><h2>Testing y cobertura</h2></summary>
+
+```bash
 - Framework: Foundry (forge-std/Test).
 - Tipos de pruebas: unitarias, integración (router/oráculo mocked), fuzzing, eventos, control de acceso y escenarios multi‑usuario.
 
@@ -247,10 +277,14 @@ sudo apt-get install -y lcov
 genhtml -o coverage-html lcov.info
 ```
 
+</details>
+
 ---
 
 <a id="entregable-tp4-formato-oficial"></a>
-## Requisitos esperados del TP4
+<details open>
+<summary><h2>Requisitos esperados del TP4</h2></summary>
+
 Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
 
 ### 1) Objetivo
@@ -348,10 +382,14 @@ Resumen en [Testing y cobertura](#-testing-y-cobertura). 43/43 tests; 66.5% lín
 - El contrato cumple los requisitos del TP4 con foco en seguridad y trazabilidad.
 - Pendientes sugeridos: TWAP/multi‑feed, multisig+timelock operativo, pruebas de gas y MEV extendidas.
 
+</details>
+
 ---
 
 <a id="deploy-y-verificacion"></a>
-## Deploy y verificación
+<details>
+<summary><h2>Deploy y verificación</h2></summary>
+
 ```bash
 source .env
 forge script script/Deploy.s.sol:DeployScript \
@@ -362,20 +400,32 @@ forge script script/Deploy.s.sol:DeployScript \
 ```
 Resultado: contrato desplegado y verificado en Sepolia.
 
+</details>
+
 ---
 
 <a id="gas-y-optimizaciones"></a>
-## Gas y optimizaciones
+<details>
+<summary><h2>Gas y optimizaciones</h2></summary>
+
+<a id="gas-y-optimizaciones"></a>
+<details>
+<summary><h2>Gas y optimizaciones</h2></summary>
+
 - `constant`/`immutable` para reducir SLOAD.
 - Errores personalizados en lugar de strings.
 - `unchecked` en incrementos con pre‑checks.
 - Una sola lectura de oráculo por función.
 - Reutilización de memoria en rutas de swap.
 
+</details>
+
 ---
 
 <a id="limitaciones-y-roadmap"></a>
-## Limitaciones y roadmap
+<details>
+<summary><h2>Limitaciones y roadmap</h2></summary>
+
 | Área | Limitación |
 |------|------------|
 | Oráculos | Solo ETH/USD (sin TWAP/multi‑feed) |
@@ -386,11 +436,17 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle, módulos de estrategia y CI con cobertura y Slither.
 
+</details>
+
 ---
 
 <a id="licencia"></a>
-## Licencia
+<details open>
+<summary><h2>Licencia</h2></summary>
+
 MIT
+
+</details>
 
 <sub>Última actualización: 12 Nov 2025</sub>
 
