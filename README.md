@@ -493,32 +493,21 @@ genhtml -o coverage-html lcov.info
 <details open>
 <summary><h2>Entregable TP4</h2></summary>
 
-Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
+### Objetivo
+Banco DeFi educativo con depósitos de ETH y ERC‑20, swap automático a USDC vía Uniswap V2, retiros con límites por transacción y validación de precios con Chainlink (staleness + desviación máxima), aplicando buenas prácticas de seguridad.
 
-### 1) Objetivo
-Implementar un “banco” DeFi educativo que acepte depósitos de ETH y ERC‑20, realice swap automático a USDC vía Uniswap V2, exponga retiros con límite por transacción y valide precios con Chainlink (staleness + desviación), aplicando buenas prácticas de seguridad.
+### Funcionalidades principales
+- Depósitos ETH con conversión automática a USD y validación de cap global.
+- Depósitos ERC‑20 con swap a USDC mediante ruta Token→WETH→USDC.
+- Retiros hasta límite por transacción (ETH y USDC).
+- Catálogo de tokens administrado por rol y Timelock opcional para cambios sensibles.
+- Sistema de roles (admin, cap manager, pause manager, token manager) y pausa de emergencia.
 
-### 2) Requisitos funcionales implementados
-- Depósito de ETH: `deposit()` con cálculo de valor USD y verificación de `BANK_CAP_USD`.
-- Depósito de ERC‑20 con swap a USDC: `depositAndSwapERC20(tokenIn, amountIn, amountOutMin, deadline)`; ruta Token→WETH→USDC (o WETH→USDC).
-- Retiros: `withdrawToken(token, amount)` para ETH y USDC, con límite `MAX_WITHDRAWAL_PER_TX`.
-- Catálogo de tokens: alta/actualización mediante `addOrUpdateToken` (rol `TOKEN_MANAGER_ROLE`).
-- Emisión de eventos: `DepositSuccessful`, `WithdrawalSuccessful`.
-
-### 3) Requisitos no funcionales
-- Seguridad: CEI, `ReentrancyGuard`, `Pausable`, `AccessControl`, `SafeERC20`, errores personalizados.
-- Oráculos: validación de staleness (`PRICE_FEED_TIMEOUT`) y desviación (`MAX_PRICE_DEVIATION_BPS`).
-- Observabilidad: eventos y contadores (`getDepositCount`).
-
-### 4) Arquitectura y diagramas
-- Herencia y librerías: `AccessControl`, `Pausable`, `ReentrancyGuard`, `SafeERC20`.
-- Integraciones: `IUniswapV2Router02`, `AggregatorV3Interface`.
-- Diagramas detallados: ver [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md).
-
-### 5) Contratos y direcciones
-- Red: Sepolia
-- Contrato principal: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
-- Verificación: Etherscan y Blockscout enlazados en el encabezado.
+### Arquitectura
+- Herencia: AccessControl, Pausable, ReentrancyGuard
+- Librerías: SafeERC20
+- Integraciones: Uniswap V2 Router, Chainlink (ETH/USD)
+- Red: Sepolia | Contrato: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
 
 ### Interfaz pública
 
