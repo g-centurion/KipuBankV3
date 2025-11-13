@@ -16,11 +16,11 @@
 ---
 
 <details open>
-<summary><h2>Guía rápida para el evaluador</h2></summary>
+<summary><h2>KipuBankV3: Trabajo práctico 4 (incluye correcciones TP3)</h2></summary>
 
-- Resumen ejecutivo y Decisiones de diseño y trade-offs.
-- Instrucciones de despliegue e interacción: ver [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
-- Notas sobre decisiones de diseño o trade-offs: ver [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
+- Resumen ejecutivo y decisiones de diseño: ver [Resumen ejecutivo](#resumen-ejecutivo) y [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
+- Despliegue e interacción: ver [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
+- Trade-offs: ver [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
 - Informe de análisis de amenazas:
    - Debilidades y madurez: ver [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
    - Cobertura de pruebas: ver [Testing y cobertura](#testing-y-cobertura).
@@ -32,6 +32,7 @@
 - [Resumen ejecutivo](#resumen-ejecutivo)
 - [Características principales](#caracteristicas-principales)
 - [Especificaciones técnicas](#especificaciones-tecnicas)
+- [Evolución desde KipuBankV2 (TP3)](#evolucion-desde-kipubankv2-tp3)
 - [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs)
 - [Integraciones DeFi](#integraciones-defi)
 - [Diagramas esenciales](#diagramas-esenciales)
@@ -71,6 +72,30 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 </details>
 
 ---
+
+<a id="evolucion-desde-kipubankv2-tp3"></a>
+<details open>
+<summary><h2>Evolución desde KipuBankV2 (TP3)</h2></summary>
+
+KipuBankV3 es una evolución directa de KipuBankV2 (TP3), incorporando las correcciones solicitadas y ampliaciones funcionales del TP4.
+
+Mejoras y correcciones aplicadas (según feedback de TP3):
+- NatSpec completo: funciones, parámetros, eventos, errores y constantes documentadas.
+- Custom errors en lugar de `require` con strings; se eliminaron long strings.
+- Atomicidad y revert: adopción estricta de CEI; todos los checks van antes de mutar estado o interactuar externamente.
+- Lógica con roles/modificadores: uso de `onlyRole` (AccessControl) para operaciones administrativas.
+- Bank Cap: verificación explícita en depósitos de ETH y ERC‑20 con conversión a USD; no se permite superar el cap.
+- Organización de estado: variables agrupadas por propósito (inmutables/constantes primero, storage coherente); sin inicializaciones redundantes (p. ej., contadores parten en 0 por defecto).
+- Optimizaciones: cacheo de lecturas de storage y `unchecked` sólo donde es seguro.
+- Estilo: comentarios y NatSpec estandarizados (inglés técnico donde corresponde).
+
+Ampliaciones del TP4 respecto a V2:
+- Swaps automáticos a USDC con Uniswap V2 y ruta por WETH.
+- Validaciones de precio de Chainlink (staleness + desviación) con registro de último precio.
+- Límite de retiro por transacción y cap global en USD.
+- Catálogo de tokens administrado por rol y Timelock opcional para cambios sensibles.
+
+</details>
 
 <a id="especificaciones-tecnicas"></a>
 <details>
@@ -391,15 +416,17 @@ cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "hasRole(bytes32,address)(b
 <details>
 <summary><h2>Informe de análisis de amenazas (resumen)</h2></summary>
 
-- Debilidades actuales y pasos a madurez
-   - Un solo feed ETH/USD: riesgo ante fallas del oráculo. Paso: agregar TWAP/multi-feed y fallback manual.
-   - Ruta fija de swaps: riesgo de precio peor al óptimo. Paso: ruteo dinámico/Agregadores y límites de slippage adaptativos.
-   - Gobernanza sin multisig activo: riesgo de llaves únicas. Paso: multisig + timelock operativo.
-   - Falta de stress tests de gas/MEV: riesgo de costos y reorgs. Paso: incorporar escenarios de carga y simulaciones con bundles.
+- Debilidades y madurez
+   - Oráculo único ETH/USD: dependencia central. Paso: TWAP/multi‑feed + fallback manual y alertas.
+   - Ruta fija (via WETH): puede no ser la más barata. Paso: ruteo dinámico/Agregador y slippage adaptativo.
+   - Gobernanza sin multisig activo: riesgo de clave única. Paso: multisig + timelock operativo y umbrales claros.
+   - Sin stress tests de gas/MEV: riesgo de costos y reorgs. Paso: escenarios de carga, bundle testing y simulaciones.
 
-- Cobertura de pruebas y métodos
-   - Cobertura actual: ver métricas en [Testing y cobertura](#testing-y-cobertura).
-   - Métodos: unitarias, integración con mocks (router/oráculo), fuzzing, verificación de eventos y RBAC; generación de reporte `lcov` y HTML.
+- Cobertura de pruebas
+   - Métricas vigentes: ver [Testing y cobertura](#testing-y-cobertura) (tests, % líneas/funciones y reporte HTML opcional).
+
+- Métodos de prueba
+   - Unitarias e integración con mocks (router/oráculo), fuzzing, verificación de eventos y RBAC; generación de `lcov` y HTML.
 
 Documento completo: ver [THREAT_MODEL.md](THREAT_MODEL.md) y [AUDITOR_GUIDE.md](AUDITOR_GUIDE.md).
 
