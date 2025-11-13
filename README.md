@@ -520,78 +520,35 @@ Implementar un “banco” DeFi educativo que acepte depósitos de ETH y ERC‑2
 - Contrato principal: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
 - Verificación: Etherscan y Blockscout enlazados en el encabezado.
 
-### 6) API del contrato (interfaz pública y consideraciones de seguridad)
+### Interfaz pública
 
-#### 6.1 Funciones principales (con roles y errores asociados)
+| Función | Rol | Descripción |
+|---------|-----|-------------|
+| `deposit()` | — | Acepta ETH nativo y actualiza saldo interno |
+| `depositAndSwapERC20()` | — | Recibe ERC‑20 y realiza swap a USDC |
+| `withdrawToken()` | — | Retira ETH o USDC respetando límites |
+| `pause()` / `unpause()` | PAUSE_MANAGER | Control de emergencia |
+| `setEthPriceFeedAddress()` | CAP_MANAGER | Actualiza oráculo ETH/USD |
+| `addOrUpdateToken()` | TOKEN_MANAGER | Administra tokens soportados |
+| `getDepositCount()` / `getWethAddress()` | — | Consultas públicas |
 
-| Función | Descripción | Rol requerido | Errores relevantes |
-|---|---|---|---|
-| `deposit()` | Acepta ETH nativo y acredita el saldo interno en USD | Ninguno | `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__StalePrice`, `Bank__PriceDeviation` |
-| `depositAndSwapERC20(tokenIn, amountIn, amountOutMin, deadline)` | Recibe ERC‑20, calcula ruta por WETH y realiza swap a USDC | Ninguno | `Bank__ZeroAmount`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__DepositExceedsCap`, `Bank__StalePrice`, `Bank__PriceDeviation` |
-| `withdrawToken(token, amount)` | Retira ETH o USDC hasta el límite por transacción | Ninguno | `Bank__ZeroAmount`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__TransferFailed` |
-| `pause()` | Activa el modo de pausa de emergencia | `PAUSE_MANAGER_ROLE` | — |
-| `unpause()` | Desactiva el modo de pausa | `PAUSE_MANAGER_ROLE` | — |
-| `setEthPriceFeedAddress(newAddress)` | Actualiza el oráculo ETH/USD | `CAP_MANAGER_ROLE` | — |
-| `addOrUpdateToken(token, priceFeed, decimals)` | Administra el catálogo de tokens soportados | `TOKEN_MANAGER_ROLE` | — |
-| `getDepositCount()` | Devuelve el contador de depósitos totales | Ninguno | — |
-| `getWethAddress()` | Devuelve la dirección de WETH configurada | Ninguno | — |
+Eventos: `DepositSuccessful`, `WithdrawalSuccessful`
 
-Eventos emitidos:
-```
-event DepositSuccessful(address indexed user, address indexed token, uint256 amount);
-event WithdrawalSuccessful(address indexed user, address indexed token, uint256 amount);
-```
+Errores personalizados: `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__StalePrice`, `Bank__PriceDeviation`, `Bank__TransferFailed`
 
-#### 6.2 Roles del contrato (referencia)
+### Parámetros clave
+- Cap global: 1,000,000 USD (8 decimales)
+- Timeout oráculo: 1 hora
+- Desviación máxima: 5% (500 bps)
+- Límite por retiro: configurado en constructor
 
-| Rol | Propósito |
-|-----|-----------|
-| `DEFAULT_ADMIN_ROLE` | Administración general y asignación de roles |
-| `CAP_MANAGER_ROLE` | Gestión de oráculo y parámetros de riesgo |
-| `PAUSE_MANAGER_ROLE` | Operaciones de pausa/despausa |
-| `TOKEN_MANAGER_ROLE` | Alta y actualización de tokens soportados |
+### Seguridad
+- Patrón CEI, ReentrancyGuard, SafeERC20
+- Validación de oráculo (staleness + desviación)
+- Slippage controlado en swaps
+- RBAC y pausa de emergencia
 
-#### 6.3 Errores personalizados (referencia)
-
-| Error | Descripción breve |
-|-------|-------------------|
-| `Bank__ZeroAmount` | Valor de entrada igual a cero |
-| `Bank__DepositExceedsCap` | Límite global del banco excedido |
-| `Bank__WithdrawalExceedsLimit` | Límite por transacción superado |
-| `Bank__InsufficientBalance` | Saldo insuficiente del usuario |
-| `Bank__TokenNotSupported` | Token no habilitado en el catálogo |
-| `Bank__SlippageTooHigh` | Resultado del swap inferior al mínimo |
-| `Bank__StalePrice` | Desactualización del oráculo más allá del tiempo límite |
-| `Bank__PriceDeviation` | Desviación de precio por encima del umbral |
-| `Bank__TransferFailed` | Fallo en la transferencia del token |
-
-### 7) Parámetros y constantes relevantes
-- `BANK_CAP_USD = 1_000_000 * 1e8`
-- `PRICE_FEED_TIMEOUT = 1 hours`
-- `MAX_PRICE_DEVIATION_BPS = 500`
-- `MAX_WITHDRAWAL_PER_TX` (immutable configurado en el constructor)
-
-### 8) Roles y permisos
-Resumen en la sección [API del contrato](#6-api-del-contrato-interfaz-pública-y-consideraciones-de-seguridad).
-
-### 9) Consideraciones de seguridad
-- Reentrancia mitigada con CEI y `ReentrancyGuard`.
-- Oráculo: staleness/desviación + actualización de `lastRecordedPrice`.
-- Slippage: parámetro `amountOutMin` y chequeo posterior al swap.
-- Límite por retiro y cap global del banco en USD.
-
-- Material para auditoría: ver [AUDITOR_GUIDE.md](AUDITOR_GUIDE.md) con flujos críticos, checklist de seguridad y pruebas recomendadas.
-- Modelo de amenazas: ver [THREAT_MODEL.md](THREAT_MODEL.md) con riesgos priorizados, escenarios y mitigaciones aplicadas.
-
-### 10) Despliegue y verificación
-Comandos en [Deploy y verificación](#deploy-y-verificacion).
-
-### 11) Pruebas y cobertura
-Resumen en [Testing y cobertura](#testing-y-cobertura). 43/43 tests; 66.5% líneas global; 89.38% en contrato principal.
-
-### 12) Conclusiones y mejoras
-- El contrato cumple los requisitos del TP4 con foco en seguridad y trazabilidad.
-- Pendientes sugeridos: TWAP/multi‑feed, multisig+timelock operativo, pruebas de gas y MEV extendidas.
+Documentación de seguridad: AUDITOR_GUIDE.md y THREAT_MODEL.md
 
 </details>
 
