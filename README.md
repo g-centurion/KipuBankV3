@@ -18,13 +18,10 @@
 <details open>
 <summary><h2>KipuBankV3: Trabajo práctico 4 (incluye correcciones TP3)</h2></summary>
 
-- Resumen ejecutivo y decisiones de diseño: ver [Resumen ejecutivo](#resumen-ejecutivo) y [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
-- Despliegue e interacción: ver [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
-- Trade-offs: ver [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
-- Informe de análisis de amenazas:
-   - Debilidades y madurez: ver [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
-   - Cobertura de pruebas: ver [Testing y cobertura](#testing-y-cobertura).
-   - Métodos de prueba: ver [Testing y cobertura](#testing-y-cobertura) (tipos de tests y cómo ejecutarlos).
+- Visión general: [Resumen ejecutivo](#resumen-ejecutivo) y [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
+- Despliegue e interacción: [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
+- Análisis de amenazas: [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
+- Pruebas: [Testing y cobertura](#testing-y-cobertura) (cobertura y métodos de prueba).
 
 </details>
 
