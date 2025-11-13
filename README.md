@@ -4,25 +4,25 @@
 # KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
 <strong>Contrato desplegado en Sepolia</strong>
 
-<sub>
-Contrato: <code>0x773808318d5CE8Bc953398B4A0580e53502eAAe1</code> ·
-Tx: <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</code> ·
+<p>
+<strong>Contrato:</strong> <code>0x773808318d5CE8Bc953398B4A0580e53502eAAe1</code> ·
+<strong>Tx:</strong> <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</code><br/>
 <a href="https://sepolia.etherscan.io/address/0x773808318d5ce8bc953398b4a0580e53502eaae1#code">Etherscan</a> ·
 <a href="https://eth-sepolia.blockscout.com/address/0x773808318d5CE8Bc953398B4A0580e53502eAAe1">Blockscout</a>
-</sub>
+</p>
 
 </div>
 
 ---
 
 <details open>
-<summary><h2>Checklist del enunciado (README requerido)</h2></summary>
+<summary><h2>Guía rápida para el evaluador</h2></summary>
 
-- Explicación de alto nivel de mejoras y el porqué: ver [Resumen ejecutivo](#resumen-ejecutivo) y [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
+- Resumen ejecutivo y Decisiones de diseño y trade-offs.
 - Instrucciones de despliegue e interacción: ver [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
 - Notas sobre decisiones de diseño o trade-offs: ver [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
-- Informe de análisis de amenazas que incluya:
-   - Identificación de debilidades y pasos a madurez: ver [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
+- Informe de análisis de amenazas:
+   - Debilidades y madurez: ver [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
    - Cobertura de pruebas: ver [Testing y cobertura](#testing-y-cobertura).
    - Métodos de prueba: ver [Testing y cobertura](#testing-y-cobertura) (tipos de tests y cómo ejecutarlos).
 
@@ -39,7 +39,7 @@ Tx: <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</co
 - [Interacción on-chain (cast)](#interaccion-on-chain-cast)
 - [Testing y cobertura](#testing-y-cobertura)
 - [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen)
-- [Entregable TP4 (formato oficial)](#entregable-tp4-formato-oficial)
+- [Entregable TP4](#entregable-tp4)
 - [Deploy y verificación](#deploy-y-verificacion)
 - [Gas y optimizaciones](#gas-y-optimizaciones)
 - [Limitaciones y roadmap](#limitaciones-y-roadmap)
@@ -465,9 +465,9 @@ genhtml -o coverage-html lcov.info
 
 ---
 
-<a id="entregable-tp4-formato-oficial"></a>
+<a id="entregable-tp4"></a>
 <details open>
-<summary><h2>Entregable TP4 (formato oficial)</h2></summary>
+<summary><h2>Entregable TP4</h2></summary>
 
 Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
 
