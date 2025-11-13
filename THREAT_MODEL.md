@@ -2,7 +2,8 @@
 
 ## Resumen Ejecutivo
 
-Este documento detalla el análisis de seguridad, vulnerabilidades potenciales y mitigaciones implementadas en KipuBankV3. El análisis fue realizado antes de su despliegue en producción.
+- Objetivo: detallar análisis de seguridad, vulnerabilidades y mitigaciones implementadas en KipuBankV3.
+- Estado: análisis previo al despliegue en producción.
 
 **Nivel de Riesgo General:** MEDIO  
 **Estado de Madurez:** PRE-PRODUCCIÓN  

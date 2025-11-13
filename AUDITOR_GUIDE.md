@@ -13,7 +13,8 @@
 
 ## Introducción
 
-Este documento está diseñado para **auditores de seguridad** que necesitan entender y verificar la implementación de KipuBankV3.
+- Audiencia: auditores de seguridad.
+- Objetivo: verificar la implementación de KipuBankV3.
 
 ### Información General
 - **Contrato Principal:** `KipuBankV3_TP4.sol` (Solidity 0.8.30)

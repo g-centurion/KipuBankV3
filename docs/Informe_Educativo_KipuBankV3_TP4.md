@@ -2,7 +2,8 @@
 
 Autor: Equipo KipuBankV3 · Fecha: 13 Nov 2025
 
-Este documento explica, paso a paso y en lenguaje claro, cómo está construido KipuBankV3_TP4, por qué tomamos cada decisión de diseño y cómo reproducir todo el flujo (desde preparar el entorno, entender el contrato, ejecutar pruebas, desplegar, interactuar y revisar seguridad). Está pensado para lectores sin experiencia previa en blockchain.
+- Audiencia: lectores sin experiencia previa en blockchain.
+- Objetivo: explicar la construcción de KipuBankV3_TP4 y cómo reproducir el flujo completo (entorno, contrato, pruebas, despliegue, interacción y seguridad).
 
 ---
 
@@ -197,7 +198,7 @@ graph LR
 
 ## Apéndice B: README completo del proyecto
 
-A continuación se incluye el contenido completo del README oficial del repositorio, con todas las secciones expandidas para referencia:
+Se incluye el contenido completo del README (secciones expandidas) para referencia.
 
 ---
 
@@ -291,7 +292,7 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 
 ### Diagramas esenciales
 
-Todos los diagramas del sistema están aquí para entender el funcionamiento completo sin necesidad de consultar archivos externos.
+
 
 #### 1. Flujo general del sistema
 
@@ -579,7 +580,7 @@ genhtml -o coverage-html lcov.info
 
 ### Requisitos esperados del TP4
 
-Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
+Formato TP4 condensado para la entrega oficial.
 
 #### 1) Objetivo
 Implementar un "banco" DeFi educativo que acepte depósitos de ETH y ERC‑20, realice swap automático a USDC vía Uniswap V2, exponga retiros con límite por transacción y valide precios con Chainlink (staleness + desviación), aplicando buenas prácticas de seguridad.

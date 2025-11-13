@@ -158,7 +158,6 @@ Ampliaciones del TP4 respecto a V2:
 <details open>
 <summary><h2>Diagramas esenciales</h2></summary>
 
-Todos los diagramas del sistema están aquí para entender el funcionamiento completo sin necesidad de consultar archivos externos.
 
 <details><summary><strong>1. Flujo general del sistema</strong></summary>
 
@@ -537,7 +536,7 @@ Errores personalizados: `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__Wi
 - Slippage controlado en swaps
 - RBAC y pausa de emergencia
 
-Documentación de seguridad: AUDITOR_GUIDE.md y THREAT_MODEL.md
+- Documentación: AUDITOR_GUIDE.md, THREAT_MODEL.md
 
 </details>
 

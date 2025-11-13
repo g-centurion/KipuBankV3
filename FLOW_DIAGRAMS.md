@@ -1,6 +1,6 @@
 # Diagramas de Flujo - KipuBankV3
 
-Este documento contiene los diagramas completos del sistema. En el README solo se muestran los esenciales; aquí se listan los flujos extendidos y módulos administrativos.
+Diagramas completos del sistema: flujos extendidos y módulos administrativos.
 
 ## Índice
 - [1. Flujo General del Sistema](#1-flujo-general-del-sistema)
