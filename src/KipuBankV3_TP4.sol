@@ -4,7 +4,7 @@ pragma solidity 0.8.30;
 // =========================================================================
 /**
  * @title KipuBankV3_TP4
- * @author KipuBank V3 contributors
+ * @author G-Centurion
  *
  * @notice
  * KipuBankV3_TP4 is a DeFi banking/lending style contract that exposes core user-facing
