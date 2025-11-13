@@ -5,26 +5,41 @@
 <strong>Contrato desplegado en Sepolia</strong>
 
 <sub>
-Contrato: <code>0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7</code> ·
-Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</code> ·
-<a href="https://sepolia.etherscan.io/address/0x5b7f2f853adf9730fba307dc2bd2b19ff51fcdd7#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7">Blockscout</a>
+Contrato: <code>0x773808318d5CE8Bc953398B4A0580e53502eAAe1</code> ·
+Tx: <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</code> ·
+<a href="https://sepolia.etherscan.io/address/0x773808318d5ce8bc953398b4a0580e53502eaae1#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0x773808318d5CE8Bc953398B4A0580e53502eAAe1">Blockscout</a>
 </sub>
 
 </div>
 
 ---
 
+<details open>
+<summary><h2>Checklist del enunciado (README requerido)</h2></summary>
+
+- Explicación de alto nivel de mejoras y el porqué: ver [Resumen ejecutivo](#resumen-ejecutivo) y [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
+- Instrucciones de despliegue e interacción: ver [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
+- Notas sobre decisiones de diseño o trade-offs: ver [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
+- Informe de análisis de amenazas que incluya:
+   - Identificación de debilidades y pasos a madurez: ver [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
+   - Cobertura de pruebas: ver [Testing y cobertura](#testing-y-cobertura).
+   - Métodos de prueba: ver [Testing y cobertura](#testing-y-cobertura) (tipos de tests y cómo ejecutarlos).
+
+</details>
+
 ## Índice
 - [Resumen ejecutivo](#resumen-ejecutivo)
 - [Características principales](#caracteristicas-principales)
 - [Especificaciones técnicas](#especificaciones-tecnicas)
+- [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs)
 - [Integraciones DeFi](#integraciones-defi)
 - [Diagramas esenciales](#diagramas-esenciales)
 - [Instalación y uso](#instalacion-y-uso)
 - [Interacción on-chain (cast)](#interaccion-on-chain-cast)
 - [Testing y cobertura](#testing-y-cobertura)
-- [Requisitos esperados del TP4](#entregable-tp4-formato-oficial)
+- [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen)
+- [Entregable TP4 (formato oficial)](#entregable-tp4-formato-oficial)
 - [Deploy y verificación](#deploy-y-verificacion)
 - [Gas y optimizaciones](#gas-y-optimizaciones)
 - [Limitaciones y roadmap](#limitaciones-y-roadmap)
@@ -91,6 +106,20 @@ KipuBankV3 es un contrato DeFi educativo que admite depósitos de ETH y ERC-20 (
 </details>
 
 ---
+
+<a id="decisiones-de-diseno-y-trade-offs"></a>
+<details>
+<summary><h2>Decisiones de diseño y trade-offs</h2></summary>
+
+- Base contable en USDC: simplifies contabilidad y UX; trade-off: dependencia del router y oráculo.
+- Ruta fija de swaps por WETH: maximiza liquidez en Uniswap V2; trade-off: ruta no siempre óptima en precio.
+- Validación de precio (staleness + desviación 5%): aumenta seguridad ante outliers; trade-off: puede revertir en picos de volatilidad.
+- Límite global en USD y tope por retiro: reduce riesgo sistémico y de drenaje; trade-off: restringe montos grandes.
+- RBAC separado (admin/cap/pause/token): menor superficie de error; trade-off: mayor operación de roles.
+- Patrón CEI + ReentrancyGuard y SafeERC20: baseline de seguridad; trade-off: costo de gas marginal.
+- Timelock opcional para cambios sensibles: defensa contra cambios apresurados; trade-off: menor agilidad operativa.
+
+</details>
 
 <a id="integraciones-defi"></a>
 <details>
@@ -343,13 +372,13 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 ```bash
 # Max withdrawal
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
+cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
 
 # Router
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
+cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
 
 # Ver rol admin
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(bool)" \
+cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "hasRole(bytes32,address)(bool)" \
    0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
    --rpc-url $RPC_URL_SEPOLIA
 ```
@@ -357,6 +386,24 @@ cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(b
 </details>
 
 ---
+
+<a id="informe-de-analisis-de-amenazas-resumen"></a>
+<details>
+<summary><h2>Informe de análisis de amenazas (resumen)</h2></summary>
+
+- Debilidades actuales y pasos a madurez
+   - Un solo feed ETH/USD: riesgo ante fallas del oráculo. Paso: agregar TWAP/multi-feed y fallback manual.
+   - Ruta fija de swaps: riesgo de precio peor al óptimo. Paso: ruteo dinámico/Agregadores y límites de slippage adaptativos.
+   - Gobernanza sin multisig activo: riesgo de llaves únicas. Paso: multisig + timelock operativo.
+   - Falta de stress tests de gas/MEV: riesgo de costos y reorgs. Paso: incorporar escenarios de carga y simulaciones con bundles.
+
+- Cobertura de pruebas y métodos
+   - Cobertura actual: ver métricas en [Testing y cobertura](#testing-y-cobertura).
+   - Métodos: unitarias, integración con mocks (router/oráculo), fuzzing, verificación de eventos y RBAC; generación de reporte `lcov` y HTML.
+
+Documento completo: ver [THREAT_MODEL.md](THREAT_MODEL.md) y [AUDITOR_GUIDE.md](AUDITOR_GUIDE.md).
+
+</details>
 
 <a id="testing-y-cobertura"></a>
 <details>
@@ -420,7 +467,7 @@ genhtml -o coverage-html lcov.info
 
 <a id="entregable-tp4-formato-oficial"></a>
 <details open>
-<summary><h2>Requisitos esperados del TP4</h2></summary>
+<summary><h2>Entregable TP4 (formato oficial)</h2></summary>
 
 Esta sección sigue el formato típico del enunciado del TP4 y reúne en un solo lugar lo mínimo indispensable para la entrega formal.
 
@@ -446,7 +493,7 @@ Implementar un “banco” DeFi educativo que acepte depósitos de ETH y ERC‑2
 
 ### 5) Contratos y direcciones
 - Red: Sepolia
-- Contrato principal: `0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7`
+- Contrato principal: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
 - Verificación: Etherscan y Blockscout enlazados en el encabezado.
 
 ### 6) API del contrato (interfaz pública y consideraciones de seguridad)
@@ -586,7 +633,7 @@ MIT
 
 </details>
 
-<sub>Última actualización: 12 Nov 2025</sub>
+<sub>Última actualización: 13 Nov 2025</sub>
 
 
 ---

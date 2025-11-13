@@ -1,6 +1,6 @@
 # Informe Educativo – KipuBankV3_TP4
 
-Autor: Equipo KipuBankV3 · Fecha: 12 Nov 2025
+Autor: Equipo KipuBankV3 · Fecha: 13 Nov 2025
 
 Este documento explica, paso a paso y en lenguaje claro, cómo está construido KipuBankV3_TP4, por qué tomamos cada decisión de diseño y cómo reproducir todo el flujo (desde preparar el entorno, entender el contrato, ejecutar pruebas, desplegar, interactuar y revisar seguridad). Está pensado para lectores sin experiencia previa en blockchain.
 
@@ -207,10 +207,10 @@ A continuación se incluye el contenido completo del README oficial del reposito
 <strong>Contrato desplegado en Sepolia</strong>
 
 <sub>
-Contrato: <code>0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7</code> ·
-Tx: <code>0x403dd8a522806960ef682142215a9f0e9d3251ce4e919f170d02e3539cda0e71</code> ·
-<a href="https://sepolia.etherscan.io/address/0x5b7f2f853adf9730fba307dc2bd2b19ff51fcdd7#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7">Blockscout</a>
+Contrato: <code>0x773808318d5CE8Bc953398B4A0580e53502eAAe1</code> ·
+Tx: <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</code> ·
+<a href="https://sepolia.etherscan.io/address/0x773808318d5ce8bc953398b4a0580e53502eaae1#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0x773808318d5CE8Bc953398B4A0580e53502eAAe1">Blockscout</a>
 </sub>
 
 </div>
@@ -509,13 +509,13 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 ```bash
 # Max withdrawal
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
+cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
 
 # Router
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
+cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
 
 # Ver rol admin
-cast call 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7 "hasRole(bytes32,address)(bool)" \
+cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "hasRole(bytes32,address)(bool)" \
   0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
   --rpc-url $RPC_URL_SEPOLIA
 ```
@@ -603,7 +603,7 @@ Implementar un "banco" DeFi educativo que acepte depósitos de ETH y ERC‑20, r
 
 #### 5) Contratos y direcciones
 - Red: Sepolia
-- Contrato principal: `0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7`
+- Contrato principal: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
 - Verificación: Etherscan y Blockscout enlazados en el encabezado.
 
 #### 6) API del contrato (interfaz pública y consideraciones de seguridad)
@@ -725,10 +725,10 @@ Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle,
 
 MIT
 
-<sub>Última actualización del README: 12 Nov 2025</sub>
+<sub>Última actualización del README: 13 Nov 2025</sub>
 
 ---
 
 > Repositorio: https://github.com/g-centurion/KipuBankV3_TP4  
-> Contrato (Sepolia): `0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7`  
-> Última actualización del Informe Educativo: 12 Nov 2025
+> Contrato (Sepolia): `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`  
+> Última actualización del Informe Educativo: 13 Nov 2025
