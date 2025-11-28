@@ -1,6 +1,6 @@
 # Informe Educativo – KipuBankV3_TP4
 
-Autor: Equipo KipuBankV3 · Fecha: 13 Nov 2025
+Autor: Equipo KipuBankV3 · Fecha: 28 Nov 2025 (última actualización)
 
 - Audiencia: lectores sin experiencia previa en blockchain.
 - Objetivo: explicar la construcción de KipuBankV3_TP4 y cómo reproducir el flujo completo (entorno, contrato, pruebas, despliegue, interacción y seguridad).
@@ -509,14 +509,17 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 ### Interacción on-chain (cast)
 
 ```bash
+# Dirección del contrato en Sepolia
+CONTRACT_ADDRESS=0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9
+
 # Max withdrawal
-cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
+cast call $CONTRACT_ADDRESS "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
 
 # Router
-cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
+cast call $CONTRACT_ADDRESS "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
 
 # Ver rol admin
-cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "hasRole(bytes32,address)(bool)" \
+cast call $CONTRACT_ADDRESS "hasRole(bytes32,address)(bool)" \
   0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
   --rpc-url $RPC_URL_SEPOLIA
 ```
