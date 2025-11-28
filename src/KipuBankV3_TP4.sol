@@ -5,61 +5,8 @@ pragma solidity 0.8.30;
 /**
  * @title KipuBankV3_TP4
  * @author G-Centurion
- *
- * @notice
- * KipuBankV3_TP4 is a DeFi banking/lending style contract that exposes core user-facing
- * primitives such as deposit, withdraw, swap, and liquidity management while integrating
- * external infrastructure for pricing and execution. It leverages:
- *  - Uniswap V2 for token swaps and liquidity pool interactions,
- *  - OpenZeppelin libraries for secure ERC-20 handling, access control, and common utilities,
- *  - Chainlink for reliable on-chain price feeds (and/or oracle-based data).
- *
- * @dev
- * This top-level contract coordinates token accounting, user balances, internal bookkeeping,
- * and external protocol calls. Key implementation considerations:
- *  - Use OpenZeppelin's SafeERC20 and SafeMath (or Solidity's builtins) to avoid unsafe
- *    token transfers and arithmetic overflows.
- *  - Protect state-mutating external calls with reentrancy guards and checks-effects-interactions
- *    patterns.
- *  - Validate and normalize token decimals and amounts when interacting with price feeds and
- *    Uniswap pools.
- *  - Maintain explicit access-control for privileged actions (pausing, fee updates, oracle
- *    configuration, emergency withdraws).
- *  - Minimize trust in external oracles: use Chainlink feeds, verify timestamps, and handle
- *    stale or missing data gracefully.
- *  - When performing swaps or adding/removing liquidity on Uniswap V2, bound slippage and gas
- *    usage, and emit events for transparency.
- *  - Design fee and interest accounting to be auditable and gas-efficient (consider using
- *    cumulative index or snapshot patterns for interest accrual).
- *
- * @custom:imports
- * - Uniswap V2: for routing and pair interactions (swapExactTokensForTokens, add/remove liquidity)
- * - OpenZeppelin: for Ownable/AccessControl, SafeERC20, ReentrancyGuard, and upgrade-safe utilities
- * - Chainlink: for price feeds (aggregators) and oracle validation
- *
- * @custom:security-considerations
- * - Reentrancy: ensure all external interactions are protected via ReentrancyGuard and proper
- *   ordering of checks-effects-interactions.
- * - Oracle manipulation: never assume oracle prices are infallible—check for staleness and bound
- *   accepted price deviation; consider TWAP or multi-oracle strategies for critical pricing.
- * - Slippage & MEV: when calling Uniswap, enforce max slippage parameters and consider call
- *   sequencing that limits front-running exposure.
- * - Approval & allowance handling: follow the lowest-privilege principle for token approvals
- *   (approve minimal amounts, reset approvals as needed).
- * - Emergency controls: implement pausing, admin recovery, and clear upgrade/ownership transfer
- *   processes to handle critical failures.
- * - Asset custody: clearly document which tokens are custodial and what guarantees (if any)
- *   the contract provides to users.
- *
- * @custom:testing
- * - Unit tests: deposit/withdraw edge cases, interest accrual logic, fee math, and permissioned
- *   actions.
- * - Integration tests: Uniswap swap flows, add/remove liquidity, and Chainlink feed changes.
- * - Fuzzing & property tests: arithmetic invariants, reentrancy attempts, and oracle outage scenarios.
- *
- * Notes:
- * - This comment block is intended to accompany the implementation file and to provide a concise
- *   design overview, security guidance, and integration notes for auditors and future maintainers.
+ * @notice Banco DeFi educativo con depósitos en ETH/ERC‑20, swap automático a USDC y retiros con límites.
+ * @dev Integra Uniswap V2 (swaps) y Chainlink (ETH/USD). Aplica CEI, ReentrancyGuard, RBAC y validaciones de precio.
  */
 // M4 IMPORTS: UNISWAP V2, OPENZEPPELIN, CHAINLINK
 // Uses audited libraries and interfaces.
@@ -122,41 +69,48 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20; // Enables secure ERC-20 interactions (V10: Token Security).
 
     // --- ROLES (Inherited from V2) ---
+    /// @notice Rol admin por defecto (gestiona roles).
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
+    /// @notice Rol autorizado a pausar/despausar.
     bytes32 public constant PAUSE_MANAGER_ROLE = keccak256("PAUSE_MANAGER_ROLE");
+    /// @notice Rol autorizado a administrar catálogo de tokens.
     bytes32 public constant TOKEN_MANAGER_ROLE = keccak256("TOKEN_MANAGER_ROLE");
 
     // --- CONSTANTS AND IMMUTABLES (V7: Gas Efficiency) ---
 
-    /// @dev Global deposit limit for the contract, fixed in USD (1,000,000 USD, 8 decimals).
+    /// @notice Límite global de depósitos del banco en USD (8 decimales).
     uint256 public constant BANK_CAP_USD = 1_000_000 * 10 ** 8;
 
-    /// @dev Maximum time allowed for price feed to be considered valid (1 hour).
+    /// @notice Máximo tiempo permitido para considerar válido el oráculo (1 hora).
     uint256 public constant PRICE_FEED_TIMEOUT = 1 hours;
 
-    /// @dev Maximum allowed price deviation percentage (5% = 500 basis points).
+    /// @notice Desviación máxima de precio permitida (5% = 500 bps).
     uint256 public constant MAX_PRICE_DEVIATION_BPS = 500; // 5%
 
-    /// @dev Maximum amount a user can withdraw per transaction (set in constructor).
+    /// @notice Límite máximo por retiro (configurado en el constructor).
     uint256 public immutable MAX_WITHDRAWAL_PER_TX;
-    address private constant ETH_TOKEN = address(0); // Identifier for native ETH.
+    /// @notice Identificador para ETH nativo (address(0)).
+    /// @dev Constante privada usada para distinguir ETH en los mapas de balances.
+    address private constant ETH_TOKEN = address(0);
 
     // --- M4 DEFI DEPENDENCIES (Immutable) ---
-    /// @dev Instance of the Uniswap V2 Router to execute swaps.
+    /// @notice Router Uniswap V2 usado para swaps.
     IUniswapV2Router02 public immutable I_ROUTER;
-    /// @dev Wrapped ETH token address, critical for swap paths (Token -> WETH -> USDC).
+    /// @notice Dirección de WETH utilizada en rutas de swap.
     address public immutable WETH_TOKEN;
-    /// @dev USDC token address, the vault's primary reserve asset.
+    /// @notice Dirección de USDC (activo de reserva principal del banco).
     address public immutable USDC_TOKEN;
 
     // --- ORACLES (Inherited from V2) ---
-    /// @dev Chainlink Data Feed instance for ETH/USD.
+    /// @notice Oráculo Chainlink ETH/USD principal.
     AggregatorV3Interface private sEthPriceFeed;
 
-    /// @dev Last recorded ETH price for deviation checking (8 decimals).
+    /// @notice Último precio ETH/USD registrado (8 decimales) para validar desviación.
     int256 private lastRecordedPrice;
 
     // --- TYPE DECLARATIONS (V2/V3: Struct used for clarity) ---
+    /// @notice Configuración de un token soportado por el banco.
+    /// @dev Incluye oráculo, decimales y flag de habilitación.
     struct TokenData {
         address priceFeedAddress;
         uint8 tokenDecimals;
@@ -164,15 +118,47 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     }
 
     // --- STATE VARIABLES ---
-    /// @dev Mapping token address -> configuration data.
+    /// @notice Catálogo de tokens soportados: configuración por token.
     mapping(address => TokenData) private sTokenCatalog;
 
-    /// @dev Nested mapping: user address -> token address -> balance (Multi-token Accounting).
+    /// @notice Saldos internos: usuario => token => balance.
     mapping(address => mapping(address => uint256)) public balances;
 
     // Counters (Correction: Removed "= 0" initialization, Gas Optimization V7).
+    /// @notice Contador de depósitos exitosos.
     uint256 private _depositCount;
+    /// @notice Contador de retiros exitosos.
     uint256 private _withdrawalCount;
+
+    // --- AGGREGATES PARA CAP GLOBAL ---
+    /// @notice Precio ETH/USD usado en la operación en curso (cache local para evitar múltiples lecturas).
+    /// @dev Se obtiene una vez por operación y se pasa a funciones internas que lo requieran.
+
+    // --- MODIFIERS ---
+    /// @dev Requiere monto > 0.
+    modifier nonZero(uint256 amount_) {
+        if (amount_ == 0) revert Bank__ZeroAmount();
+        _;
+    }
+
+    /// @dev Requiere token soportado para retiro (ETH o USDC).
+    modifier supportedWithdrawToken(address token_) {
+        if (token_ != ETH_TOKEN && token_ != USDC_TOKEN) revert Bank__TokenNotSupported();
+        _;
+    }
+
+    /// @dev Requiere que el retiro respete el límite por transacción.
+    modifier withinWithdrawLimit(uint256 amount_) {
+        if (amount_ > MAX_WITHDRAWAL_PER_TX) revert Bank__WithdrawalExceedsLimit(MAX_WITHDRAWAL_PER_TX, amount_);
+        _;
+    }
+
+    /// @dev Requiere token permitido para depósito con swap (no ETH, no USDC, y marcado allowed).
+    modifier allowedDepositToken(address token_) {
+        if (token_ == ETH_TOKEN || token_ == USDC_TOKEN) revert Bank__InvalidTokenAddress();
+        if (!sTokenCatalog[token_].isAllowed) revert Bank__TokenNotSupported();
+        _;
+    }
 
     // ===============================================================
     // CONSTRUCTOR (Initializes roles, oracles, and DeFi components)
@@ -225,14 +211,17 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     // --- ADMINISTRATIVE FUNCTIONS (V2/V3 Inherited) ---
     // Includes pause(), unpause(), setEthPriceFeedAddress(), etc. (Omitted here for brevity, assuming standard V2 implementation protected by onlyRole).
+    /// @notice Pausa el contrato (emergencia). Solo `PAUSE_MANAGER_ROLE`.
     function pause() external onlyRole(PAUSE_MANAGER_ROLE) {
         _pause();
     }
 
+    /// @notice Reanuda el contrato. Solo `PAUSE_MANAGER_ROLE`.
     function unpause() external onlyRole(PAUSE_MANAGER_ROLE) {
         _unpause();
     }
 
+    /// @notice Actualiza la dirección del oráculo ETH/USD. Solo `CAP_MANAGER_ROLE`.
     function setEthPriceFeedAddress(address newAddress) external onlyRole(CAP_MANAGER_ROLE) {
         sEthPriceFeed = AggregatorV3Interface(newAddress);
     }
@@ -266,17 +255,10 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         external
         whenNotPaused
         nonReentrant
+        allowedDepositToken(tokenIn)
+        nonZero(amountIn)
     {
-        // A. CHECKS (Initial validation)
-        if (tokenIn == ETH_TOKEN || tokenIn == USDC_TOKEN) revert Bank__InvalidTokenAddress();
-        if (amountIn == 0) revert Bank__ZeroAmount();
-        if (!sTokenCatalog[tokenIn].isAllowed) revert Bank__TokenNotSupported();
-
-        // --- 1. Transfer TokenIn to the Vault (INTERACTION 1/3) ---
-        // Uses SafeERC20. This must happen early to give the contract custody.
-        IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
-
-        // --- 2. Determine Swap Path and Simulate ---
+        // --- 1. Determinar ruta y simular (CHECKS, sin mover fondos) ---
         address[] memory path;
 
         if (tokenIn == WETH_TOKEN) {
@@ -292,19 +274,21 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
             path[2] = USDC_TOKEN;
         }
 
-        // Use getAmountsOut (view function) to estimate USDC received (Simulation Check V8).
+        // Estimar USDC recibido (view)
         uint256[] memory amounts = I_ROUTER.getAmountsOut(amountIn, path);
-        uint256 estimatedUsdcReceived = amounts[amounts.length - 1];
 
-        // --- 3. Global Bank Cap Check (CRITICAL V8, V2 Logic) ---
-        // Checks if the total bank value (ETH + USDC + estimated USDC from swap) exceeds the cap.
-        _checkBankCap(estimatedUsdcReceived);
+        // --- 2. Chequear CAP global antes de mover tokens (CEI) ---
+        uint256 ethPriceUsd = _getEthPriceInUsd();
+        _checkBankCapWithOnchainBalances(amounts[amounts.length - 1], ethPriceUsd);
 
-        // --- 4. Give Allowance to Router (INTERACTION 2/3) ---
+        // --- 3. Transferir tokens al contrato (INTERACTION 1/3) ---
+        IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
+
+        // --- 4. Dar allowance al router (INTERACTION 2/3) ---
         // The router needs allowance to pull 'tokenIn' from KipuBankV3's balance.
         IERC20(tokenIn).safeIncreaseAllowance(address(I_ROUTER), amountIn);
 
-        // --- 5. Execute the Swap (INTERACTION 3/3) ---
+        // --- 5. Ejecutar el swap (INTERACTION 3/3) ---
         // Executes swapExactTokensForTokens, sending the resulting USDC to KipuBankV3.
         uint256[] memory actualAmounts = I_ROUTER.swapExactTokensForTokens(
             amountIn,
@@ -336,22 +320,14 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * @notice Allows users to deposit ETH (native token).
      * @dev Follows the Checks-Effects-Interactions pattern (CEI V13.2).
      */
-    function deposit() external payable whenNotPaused nonReentrant {
+    function deposit() external payable whenNotPaused nonReentrant nonZero(msg.value) {
         // A. CHECKS (V2: Oracles and USD Limit)
-        if (msg.value == 0) revert Bank__ZeroAmount();
-
         uint256 ethPriceUsd = _getEthPriceInUsd();
         _updateRecordedPrice(int256(ethPriceUsd));
 
-        // We calculate the USD value of the current deposit + existing bank value (in ETH and USDC)
+        // Calcular USD del depósito y chequear CAP usando balances on-chain previos al msg.value
         uint256 pendingDepositUsd = _getUsdValueFromWei(msg.value, ethPriceUsd);
-        uint256 totalUsdValueIfAccepted = _getBankTotalUsdValue(pendingDepositUsd);
-
-        if (totalUsdValueIfAccepted > BANK_CAP_USD) {
-            // Report balances before the deposit for clear error context.
-            uint256 currentUsdBalance = _getBankTotalUsdValue(0);
-            revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingDepositUsd);
-        }
+        _checkEthDepositCapAtomic(pendingDepositUsd, ethPriceUsd);
 
         // B. EFFECTS (State modification before external call/event)
         unchecked { // V7: Gas optimization
@@ -369,15 +345,16 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * @param tokenAddress The address of the token (address(0) for ETH).
      * @param amountToWithdraw The amount to withdraw (in token decimals/Wei).
      */
-    function withdrawToken(address tokenAddress, uint256 amountToWithdraw) external whenNotPaused nonReentrant {
+    function withdrawToken(address tokenAddress, uint256 amountToWithdraw)
+        external
+        whenNotPaused
+        nonReentrant
+        nonZero(amountToWithdraw)
+        supportedWithdrawToken(tokenAddress)
+        withinWithdrawLimit(amountToWithdraw)
+    {
         // A. CHECKS
-        if (amountToWithdraw == 0) revert Bank__ZeroAmount();
-
         uint256 userBalance = balances[msg.sender][tokenAddress];
-        uint256 limit = MAX_WITHDRAWAL_PER_TX;
-
-        if (tokenAddress != ETH_TOKEN && tokenAddress != USDC_TOKEN) revert Bank__TokenNotSupported();
-        if (amountToWithdraw > limit) revert Bank__WithdrawalExceedsLimit(limit, amountToWithdraw);
         if (userBalance < amountToWithdraw) revert Bank__InsufficientBalance(userBalance, amountToWithdraw);
 
         // B. EFFECTS (CEI: Update state)
@@ -408,17 +385,13 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * @param pendingUsdValue The value of the potential deposit already converted to USD (8 decimals).
      * @return The total USD value of the contract's balances if the pending deposit is included.
      */
-    function _getBankTotalUsdValue(uint256 pendingUsdValue) private view returns (uint256) {
-        // 1. Value of ETH deposited internally (address(0))
-        uint256 ethBalance = balances[address(this)][ETH_TOKEN];
-        uint256 ethPriceUsd = _getEthPriceInUsd();
+    function _getBankTotalUsdValueOnchain(uint256 pendingUsdValue, uint256 ethPriceUsd) private view returns (uint256) {
+        // Usar balances on-chain reales del contrato para el cálculo (atomicidad y consistencia):
+        // ETH actual sin contar el msg.value del depósito en curso (el caller controla esto antes de invocar).
+        uint256 ethBalance = address(this).balance;
         uint256 currentEthUsdValue = _getUsdValueFromWei(ethBalance, ethPriceUsd);
-
-        // 2. Value of USDC deposited internally (USDC_TOKEN)
-        uint256 usdcBalance = balances[address(this)][USDC_TOKEN];
+        uint256 usdcBalance = IERC20(USDC_TOKEN).balanceOf(address(this));
         uint256 currentUsdcUsdValue = _getUsdValueFromUsdc(usdcBalance);
-
-        // Sum total (ETH USD + USDC USD + Pending USD)
         return currentEthUsdValue + currentUsdcUsdValue + pendingUsdValue;
     }
 
@@ -427,10 +400,30 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * Reverts with Bank__DepositExceedsCap if accepting the pending amount would
      * push the bank over the cap.
      */
-    function _checkBankCap(uint256 pendingUsdValue) private view {
-        uint256 totalUsdValueIfAccepted = _getBankTotalUsdValue(pendingUsdValue);
+    /// @dev Verifica que, al sumar `pendingUsdValue` (USD, 8 dec), el total no exceda `BANK_CAP_USD`.
+    /// @param pendingUsdValue Monto pendiente a acreditar expresado en USD (8 decimales).
+    /// @param ethPriceUsd Precio ETH/USD actual (8 decimales) usado para valorar balances de ETH.
+    function _checkBankCapWithOnchainBalances(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
+        uint256 totalUsdValueIfAccepted = _getBankTotalUsdValueOnchain(pendingUsdValue, ethPriceUsd);
         if (totalUsdValueIfAccepted > BANK_CAP_USD) {
-            uint256 currentUsdBalance = _getBankTotalUsdValue(0);
+            uint256 currentUsdBalance = _getBankTotalUsdValueOnchain(0, ethPriceUsd);
+            revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingUsdValue);
+        }
+    }
+
+    /// @dev Chequea CAP para depósito de ETH considerando que `address(this).balance` ya incluye `msg.value`.
+    /// @param pendingUsdValue Valor en USD (8 decimales) del ETH a depositar.
+    /// @param ethPriceUsd Precio ETH/USD (8 decimales) para valorar el balance previo.
+    function _checkEthDepositCapAtomic(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
+        // Restar msg.value del balance ETH on-chain para evaluar el estado previo al depósito.
+        // Nota: Este helper se usa inmediatamente al inicio del depósito ETH.
+        uint256 preEthBalance = address(this).balance - msg.value;
+        uint256 preEthUsd = _getUsdValueFromWei(preEthBalance, ethPriceUsd);
+        uint256 usdcBalance = IERC20(USDC_TOKEN).balanceOf(address(this));
+        uint256 preUsdcUsd = _getUsdValueFromUsdc(usdcBalance);
+        uint256 totalIfAccepted = preEthUsd + preUsdcUsd + pendingUsdValue;
+        if (totalIfAccepted > BANK_CAP_USD) {
+            uint256 currentUsdBalance = preEthUsd + preUsdcUsd;
             revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingUsdValue);
         }
     }
@@ -482,6 +475,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * @dev Internal helper to update the last recorded price for deviation checking.
      * Should be called after successful price retrieval.
      */
+    /// @param newPrice Último precio ETH/USD aceptado (8 decimales, con signo > 0).
     function _updateRecordedPrice(int256 newPrice) internal {
         lastRecordedPrice = newPrice;
     }
@@ -511,15 +505,19 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     // --- View Functions (M2/M3 Requirement) ---
 
     /// @dev Returns the total number of deposits made to the contract.
+    /// @notice Retorna el total de depósitos exitosos.
     function getDepositCount() external view returns (uint256) {
         return _depositCount;
     }
 
-    /// @dev Returns the WETH address used for swap routing.
+    /// @notice Dirección de WETH usada para ruteo de swaps.
     function getWethAddress() external view returns (address) {
         return WETH_TOKEN;
     }
 
+    /// @notice Requisito de `AccessControl` para declarar soporte de interfaces.
+    /// @param interfaceId Identificador de interfaz (ERC165).
+    /// @return Verdadero si la interfaz es soportada.
     // Required by AccessControl inheritance
     function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
         return AccessControl.supportsInterface(interfaceId);
