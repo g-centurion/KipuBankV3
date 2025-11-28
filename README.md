@@ -129,6 +129,29 @@ New features in V3:
 
 ---
 
+<a id="on-chain-interaction"></a>
+<details open>
+<summary><h2>On-chain Interaction (try it)</h2></summary>
+
+Quick `cast` examples on Sepolia. Replace `[ADDR]` with the deployed address (`0xCB2C14F98fA5f016684e8FC3F96830C66330b122`).
+
+- Read deposit count:
+   - `cast call [ADDR] "getDepositCount()(uint256)" --rpc-url $RPC_URL_SEPOLIA`
+- Read WETH address:
+   - `cast call [ADDR] "getWethAddress()(address)" --rpc-url $RPC_URL_SEPOLIA`
+- Read USDC balance of an account:
+   - `cast call [ADDR] "balances(address,address)(uint256)" 0xYourAddr 0x1c7D4B196Cb0C6B364C3d6eB8F0708a9dA00375D --rpc-url $RPC_URL_SEPOLIA`
+- Send ETH deposit (0.01 ETH):
+   - `cast send [ADDR] --value 0.01ether --rpc-url $RPC_URL_SEPOLIA --private-key $PRIVATE_KEY`
+- Withdraw USDC (example 1 USDC = 1000000):
+   - `cast send [ADDR] "withdrawToken(address,uint256)" 0x1c7D4B196Cb0C6B364C3d6eB8F0708a9dA00375D 1000000 --rpc-url $RPC_URL_SEPOLIA --private-key $PRIVATE_KEY`
+
+Notes:
+- Always source `.env` in WSL: `source .env`.
+- Ensure you have balance and correct RPC before sending transactions.
+
+</details>
+
 <a id="design-decisions-and-trade-offs"></a>
 <details>
 <summary><h2>Design Decisions & Trade-offs</h2></summary>

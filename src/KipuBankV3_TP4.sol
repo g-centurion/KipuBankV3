@@ -403,7 +403,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns total number of successful deposits.
-     * @return Deposit count.
+     * @return depositCount The total number of deposits recorded.
      */
     function getDepositCount() external view returns (uint256) {
         return _depositCount;
@@ -411,7 +411,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns WETH address used for swap routing.
-     * @return WETH address.
+     * @return weth The canonical WETH token address configured in the router.
      */
     function getWethAddress() external view returns (address) {
         return WETH_TOKEN;
