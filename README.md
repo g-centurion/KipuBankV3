@@ -133,7 +133,7 @@ New features in V3:
 <details open>
 <summary><h2>On-chain Interaction (try it)</h2></summary>
 
-Quick `cast` examples on Sepolia. Replace `[ADDR]` with the deployed address (`0xCB2C14F98fA5f016684e8FC3F96830C66330b122`).
+Quick `cast` examples on Sepolia. Replace `[ADDR]` with the deployed address (`0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`).
 
 - Read deposit count:
    - `cast call [ADDR] "getDepositCount()(uint256)" --rpc-url $RPC_URL_SEPOLIA`
@@ -532,7 +532,7 @@ Banco DeFi educativo con depósitos de ETH y ERC‑20, swap automático a USDC v
 - Herencia: AccessControl, Pausable, ReentrancyGuard
 - Librerías: SafeERC20
 - Integraciones: Uniswap V2 Router, Chainlink (ETH/USD)
-- Red: Sepolia | Contrato: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
+- Red: Sepolia | Contrato: `0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`
 
 ### Interfaz pública
 
