@@ -9,6 +9,9 @@ coverage-html/
 lcov.info
 *.lcov
 
+# Documentation artifacts
+docs/*.html
+
 # Environment variables
 .env
 .env.*
@@ -39,6 +42,9 @@ tmp_patch_marker.txt
 
 # IDE and editor files
 .vscode/
+# Mantener sólo archivos curados de VS Code en el repo
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
