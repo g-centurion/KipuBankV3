@@ -208,10 +208,10 @@ Se incluye el contenido completo del README (secciones expandidas) para referenc
 <strong>Contrato desplegado en Sepolia</strong>
 
 <sub>
-Contrato: <code>0x773808318d5CE8Bc953398B4A0580e53502eAAe1</code> ·
-Tx: <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</code> ·
-<a href="https://sepolia.etherscan.io/address/0x773808318d5ce8bc953398b4a0580e53502eaae1#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x773808318d5CE8Bc953398B4A0580e53502eAAe1">Blockscout</a>
+Contrato: <code>0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9</code> ·
+Tx: <code>0x39e16f646659e63d285027d84659eb060b453b3f12f457cfe75d5f1eed247e25</code> ·
+<a href="https://sepolia.etherscan.io/address/0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9">Blockscout</a>
 </sub>
 
 </div>
@@ -607,7 +607,7 @@ Implementar un "banco" DeFi educativo que acepte depósitos de ETH y ERC‑20, r
 
 #### 5) Contratos y direcciones
 - Red: Sepolia
-- Contrato principal: `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`
+- Contrato principal: `0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`
 - Verificación: Etherscan y Blockscout enlazados en el encabezado.
 
 #### 6) API del contrato (interfaz pública y consideraciones de seguridad)
@@ -734,5 +734,5 @@ MIT
 ---
 
 > Repositorio: https://github.com/g-centurion/KipuBankV3_TP4  
-> Contrato (Sepolia): `0x773808318d5CE8Bc953398B4A0580e53502eAAe1`  
+> Contrato (Sepolia): `0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`  
 > Última actualización del Informe Educativo: 13 Nov 2025
