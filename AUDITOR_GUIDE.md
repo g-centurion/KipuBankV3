@@ -1,48 +1,48 @@
-# Guía de Auditoría - KipuBankV3
+# Audit Guide - KipuBankV3
 
-## Tabla de Contenidos
-1. [Introducción](#introducción)
-2. [Arquitectura del Sistema](#arquitectura-del-sistema)
-3. [Flujos Críticos](#flujos-críticos)
-4. [Checklist de Seguridad](#checklist-de-seguridad)
-5. [Pruebas Recomendadas](#pruebas-recomendadas)
-6. [Consideraciones de Gas](#consideraciones-de-gas)
-7. [Consideraciones de Privacidad](#consideraciones-de-privacidad)
-
----
-
-## Introducción
-
-- Audiencia: auditores de seguridad.
-- Objetivo: verificar la implementación de KipuBankV3.
-
-### Información General
-- **Contrato Principal:** `KipuBankV3_TP4.sol` (Solidity 0.8.30)
-- **Red de Prueba:** Sepolia Testnet
-- **Dependencias Externas:** Uniswap V2, Chainlink, OpenZeppelin
-- **Tipo de Auditoría:** Seguridad de smart contracts + Integración de protocolos
-
-### Scope de Auditoría
-```
-✅ KipuBankV3_TP4.sol (Contrato Principal)
-✅ Deploy.s.sol (Script de Despliegue)
-✅ KipuBankV3Test.sol (Suite de Pruebas)
-❌ Contratos de Terceros (Uniswap V2, Chainlink, OpenZeppelin)
-```
+## Table of Contents
+1. [Introduction](#introduction)
+2. [System Architecture](#system-architecture)
+3. [Critical Flows](#critical-flows)
+4. [Security Checklist](#security-checklist)
+5. [Recommended Tests](#recommended-tests)
+6. [Gas Considerations](#gas-considerations)
+7. [Privacy Considerations](#privacy-considerations)
 
 ---
 
-## Arquitectura del Sistema
+## Introduction
 
-### 1. Componentes Principales
+- Audience: security auditors.
+- Objective: verify the implementation of KipuBankV3.
+
+### General Information
+- **Main Contract:** `KipuBankV3_TP4.sol` (Solidity 0.8.30)
+- **Test Network:** Sepolia Testnet
+- **External Dependencies:** Uniswap V2, Chainlink, OpenZeppelin
+- **Audit Type:** Smart contract security + Protocol integration
+
+### Audit Scope
+```
+✅ KipuBankV3_TP4.sol (Main Contract)
+✅ Deploy.s.sol (Deployment Script)
+✅ KipuBankV3.t.sol (Test Suite)
+❌ Third-party Contracts (Uniswap V2, Chainlink, OpenZeppelin)
+```
+
+---
+
+## System Architecture
+
+### 1. Main Components
 
 ```
 ┌─────────────────────────────────────┐
-│     KipuBankV3 (Contrato)           │
-│  - Gestión de depósitos/retiros     │
-│  - Control de roles (RBAC)          │
-│  - Pausa de emergencia              │
-│  - Swaps automáticos                │
+│     KipuBankV3 (Contract)           │
+│  - Deposit/withdrawal management    │
+│  - Role control (RBAC)              │
+│  - Emergency pause                  │
+│  - Automatic swaps                  │
 └─────────────────────────────────────┘
         ↓                      ↓
     ┌───────────────┐    ┌─────────────┐
@@ -52,150 +52,153 @@
         ETH/USD Price      Token Swaps
 ```
 
-### 2. Flujo de Datos - Depósito de ETH
+### 2. Data Flow - ETH Deposit
 
 ```
-Usuario → deposit() 
+User → deposit() 
   ↓
-Validación de precio (Chainlink)
+Price validation (Chainlink)
   ↓
-Validación de BANK_CAP_USD
+BANK_CAP_USD validation
   ↓
-Actualización de balance[usuario][ETH_TOKEN]
+balance[user][ETH_TOKEN] update
   ↓
-Emisión de evento DepositSuccessful
+DepositSuccessful event emission
 ```
 
-### 3. Flujo de Datos - Depósito con Swap
+### 3. Data Flow - Deposit with Swap
 
 ```
-Usuario → depositAndSwapERC20(token, amount, minOut, deadline)
+User → depositAndSwapERC20(token, amount, minOut, deadline)
   ↓
-Validación de token permitido
+Validate allowed token
   ↓
-transferFrom(usuario, contrato, amount)
+transferFrom(user, contract, amount)
   ↓
-Determinar ruta de swap (TOKEN → WETH → USDC)
+Determine swap route (TOKEN → WETH → USDC)
   ↓
-getAmountsOut() - Estimar USDC a recibir
+getAmountsOut() - Estimate USDC to receive
   ↓
-Validación de BANK_CAP_USD
+BANK_CAP_USD validation
   ↓
-safeIncreaseAllowance() - Aprobar router
+safeIncreaseAllowance() - Approve router
   ↓
-swapExactTokensForTokens() - Ejecutar swap
+swapExactTokensForTokens() - Execute swap
   ↓
-Validar USDC recibido >= minOut
+Validate USDC received >= minOut
   ↓
-Actualizar balance[usuario][USDC_TOKEN]
+Update balance[user][USDC_TOKEN]
   ↓
-Emisión de evento DepositSuccessful
+DepositSuccessful event emission
 ```
 
-### 4. Variables de Estado Críticas
+### 4. Critical State Variables
 
 ```solidity
-// Balances por usuario y token
+// Balances by user and token
 mapping(address => mapping(address => uint256)) public balances
 
-// Catálogo de tokens permitidos
+// Allowed token catalog
 mapping(address => TokenData) private sTokenCatalog
 
-// Contadores
+// Counters
 uint256 private _depositCount
 uint256 private _withdrawalCount
 ```
 
 ---
 
-## Flujos Críticos
+## Critical Flows
 
-### Flujo 1: Depositar ETH
+### Flow 1: Deposit ETH
 
-**Entrada:**
-- ETH nativo
+**Input:**
+- Native ETH
 
-**Validaciones:**
+**Validations:**
 - msg.value > 0
 - ETH/USD price > 0
+- price not stale (< 1 hour)
+- price deviation <= 5%
 - (current_balance + new_deposit_value) <= BANK_CAP_USD
 
-**Efectos:**
+**Effects:**
 - balances[msg.sender][address(0)] += msg.value
 - _depositCount++
-- Emisión de evento
+- Event emission
 
-**Puntos de Riesgo:**
-- Precio de Chainlink inválido
-- BANK_CAP_USD puede ser excedido
-- No hay protección directa de reentrancia (aunque improbable en receive)
+**Risk Points:**
+- Invalid Chainlink price
+- BANK_CAP_USD could be exceeded
+- Staleness not validated
+- Price deviation not checked
 
 ---
 
-### Flujo 2: Depositar Token con Swap
+### Flow 2: Deposit Token with Swap
 
-**Entrada:**
-- Token ERC20, cantidad, minOut, deadline
+**Input:**
+- ERC20 token, amount, minOut, deadline
 
-**Validaciones:**
+**Validations:**
 1. tokenIn != address(0) && tokenIn != USDC_TOKEN
 2. amountIn > 0
 3. sTokenCatalog[tokenIn].isAllowed == true
-4. token.balanceOf(usuario) >= amountIn
-5. token.allowance(usuario, contrato) >= amountIn
-6. Ruta de swap válida
+4. token.balanceOf(user) >= amountIn
+5. token.allowance(user, contract) >= amountIn
+6. Valid swap route
 7. getAmountsOut >= amountOutMin
 8. (current_balance + usdcReceived) <= BANK_CAP_USD
-9. actualAmounts[last] >= amountOutMin (validación final)
+9. actualAmounts[last] >= amountOutMin (final validation)
 10. deadline >= block.timestamp
 
-**Transferencias Externas:**
-1. safeTransferFrom(token, usuario, contrato, amountIn)
+**External Transfers:**
+1. safeTransferFrom(token, user, contract, amountIn)
 2. safeIncreaseAllowance(token, router, amountIn)
 3. swapExactTokensForTokens (Uniswap V2)
 
-**Efectos:**
+**Effects:**
 - balances[msg.sender][USDC_TOKEN] += usdcReceived
 - _depositCount++
 
-**Puntos de Riesgo:**
-- Token malicioso en transferencia
-- Front-running en Uniswap
-- Price oracle stale
-- Reentrancia del token
-- Overflow en balances
+**Risk Points:**
+- Malicious token in transfer
+- Front-running on Uniswap
+- Stale oracle price
+- Token reentrancy
+- Balance overflow
 
 ---
 
-### Flujo 3: Retirar Tokens
+### Flow 3: Withdraw Tokens
 
-**Entrada:**
-- Token, cantidad
+**Input:**
+- Token, amount
 
-**Validaciones:**
+**Validations:**
 1. amountToWithdraw > 0
 2. tokenAddress in [address(0), USDC_TOKEN]
 3. amountToWithdraw <= MAX_WITHDRAWAL_PER_TX
 4. balances[msg.sender][tokenAddress] >= amountToWithdraw
 
-**Transferencias Externas:**
-1. Si token == address(0): call{value: amount}
-2. Si token == USDC: safeTransfer(token, usuario, cantidad)
+**External Transfers:**
+1. If token == address(0): call{value: amount}
+2. If token == USDC: safeTransfer(token, user, amount)
 
-**Efectos:**
+**Effects:**
 - balances[msg.sender][tokenAddress] -= amountToWithdraw
 - _withdrawalCount++
 
-**Puntos de Riesgo:**
-- Reentrancia en ETH transfer (call)
-- Token no transferible
-- Overflow en balance
+**Risk Points:**
+- Reentrancy in ETH transfer (call)
+- Non-transferable token
+- Balance overflow
 
 ---
 
-## Checklist de Seguridad
+## Security Checklist
 
-### ✅ Validaciones de Entrada
+### ✅ Input Validations
 
 - [ ] `deposit()`: msg.value > 0
 - [ ] `depositAndSwapERC20()`: tokenIn != address(0) && tokenIn != USDC
@@ -204,134 +207,135 @@ uint256 private _withdrawalCount
 - [ ] `withdrawToken()`: tokenAddress in allowed list
 - [ ] `setEthPriceFeedAddress()`: address != address(0)
 
-### ✅ Control de Límites
+### ✅ Limit Controls
 
-- [ ] BANK_CAP_USD nunca excedido
-- [ ] MAX_WITHDRAWAL_PER_TX respetado
-- [ ] amountOutMin protege contra slippage excesivo
-- [ ] Deadlines en swaps
+- [ ] BANK_CAP_USD never exceeded
+- [ ] MAX_WITHDRAWAL_PER_TX respected
+- [ ] amountOutMin protects against excessive slippage
+- [ ] Deadlines in swaps
 
-### ✅ Seguridad de Transferencias
+### ✅ Transfer Security
 
-- [ ] SafeERC20 usado en todas las transferencias ERC20
-- [ ] ETH transferido con `call{value:}`
-- [ ] No hay re-entrada en withdrawToken
-- [ ] Aprobaciones son mínimas y necesarias
+- [ ] SafeERC20 used in all ERC20 transfers
+- [ ] ETH transferred with `call{value:}`
+- [ ] No re-entry in withdrawToken
+- [ ] Approvals are minimal and necessary
 
-### ✅ Protección de Reentrancia
+### ✅ Reentrancy Protection
 
-- [ ] CEI (Checks-Effects-Interactions) pattern implementado
-- [ ] Actualizaciones de estado ANTES de llamadas externas
-- [ ] Sin delegatecall innecesario
-- [ ] ReentrancyGuard NO implementado (considerar agregar)
+- [ ] CEI (Checks-Effects-Interactions) pattern implemented
+- [ ] State updates BEFORE external calls
+- [ ] No unnecessary delegatecall
+- [ ] ReentrancyGuard implemented (✅ ADDED)
 
-### ✅ Control de Acceso
+### ✅ Access Control
 
 - [ ] `pause()`: Only PAUSE_MANAGER_ROLE
 - [ ] `unpause()`: Only PAUSE_MANAGER_ROLE
 - [ ] `setEthPriceFeedAddress()`: Only CAP_MANAGER_ROLE
 - [ ] `addOrUpdateToken()`: Only TOKEN_MANAGER_ROLE
-- [ ] Roles inicializados correctamente en constructor
+- [ ] Roles correctly initialized in constructor
 
-### ✅ Manejo de Oráculos
+### ✅ Oracle Handling
 
-- [ ] Chainlink feed validado para precios positivos
-- [ ] Validación de Staleness: ❌ NO IMPLEMENTADO (CRÍTICO)
-- [ ] Manejo de prices 0 o negativos
-- [ ] Consideración de TWAP alternativo
+- [ ] Chainlink feed validated for positive prices
+- [ ] Staleness validation: ✅ IMPLEMENTED (1 hour timeout)
+- [ ] Handling of 0 or negative prices
+- [ ] 5% deviation check: ✅ IMPLEMENTED
+- [ ] Alternative TWAP consideration
 
-### ✅ Eventos
+### ✅ Events
 
-- [ ] `DepositSuccessful` emitido en deposit()
-- [ ] `DepositSuccessful` emitido en depositAndSwapERC20()
-- [ ] `WithdrawalSuccessful` emitido en withdrawToken()
-- [ ] Indexación correcta de eventos
-- [ ] Parámetros correctos en eventos
+- [ ] `DepositSuccessful` emitted in deposit()
+- [ ] `DepositSuccessful` emitted in depositAndSwapERC20()
+- [ ] `WithdrawalSuccessful` emitted in withdrawToken()
+- [ ] Correct event indexing
+- [ ] Correct parameters in events
 
-### ✅ Manejo de Errores
+### ✅ Error Handling
 
-- [ ] Custom errors definidos apropiadamente
-- [ ] Mensajes de error descriptivos
-- [ ] No hay require strings (optimización de gas)
-- [ ] Errores específicos en cada caso
+- [ ] Custom errors appropriately defined
+- [ ] Descriptive error messages
+- [ ] No require strings (gas optimization)
+- [ ] Specific errors in each case
 
-### ✅ Consideraciones de Gas
+### ✅ Gas Considerations
 
-- [ ] `unchecked` usado conservadoramente
-- [ ] Constantes marcadas como `constant` o `immutable`
-- [ ] Storage optimizado (mappings vs arrays)
-- [ ] Sin loops potencialmente infinitos
+- [ ] `unchecked` used conservatively
+- [ ] Constants marked as `constant` or `immutable`
+- [ ] Optimized storage (mappings vs arrays)
+- [ ] No potentially infinite loops
 
-### ✅ Lógica de Negocio
+### ✅ Business Logic
 
-- [ ] BANK_CAP_USD valor razonable (1M USD)
-- [ ] MAX_WITHDRAWAL_PER_TX valor razonable (100 ETH)
-- [ ] Ruta de swap correcta (TOKEN → WETH → USDC)
-- [ ] Conversión de decimales correcta
+- [ ] BANK_CAP_USD reasonable value (1M USD)
+- [ ] MAX_WITHDRAWAL_PER_TX reasonable value (100 ETH)
+- [ ] Correct swap route (TOKEN → WETH → USDC)
+- [ ] Correct decimal conversion
 
 ---
 
-## Pruebas Recomendadas
+## Recommended Tests
 
-### Pruebas Unitarias
+### Unit Tests
 
-#### 1. Depósitos
+#### 1. Deposits
 ```solidity
-✅ Depósito de 0 ETH → Falla (ZeroAmount)
-✅ Depósito de 1 ETH → Éxito
-✅ Depósito que excede cap → Falla (DepositExceedsCap)
-✅ Depósito token válido → Éxito
-✅ Depósito token no permitido → Falla (TokenNotSupported)
+✅ 0 ETH deposit → Fails (ZeroAmount)
+✅ 1 ETH deposit → Success
+✅ Deposit exceeding cap → Fails (DepositExceedsCap)
+✅ Valid token deposit → Success
+✅ Unallowed token deposit → Fails (TokenNotSupported)
 ```
 
-#### 2. Retiros
+#### 2. Withdrawals
 ```solidity
-✅ Retiro de 0 → Falla (ZeroAmount)
-✅ Retiro ETH exitoso → Éxito
-✅ Retiro que excede limite → Falla (ExceedsLimit)
-✅ Retiro sin balance → Falla (InsufficientBalance)
-✅ Retiro de token no permitido → Falla (TokenNotSupported)
+✅ 0 withdrawal → Fails (ZeroAmount)
+✅ Successful ETH withdrawal → Success
+✅ Withdrawal exceeding limit → Fails (ExceedsLimit)
+✅ Withdrawal without balance → Fails (InsufficientBalance)
+✅ Unallowed token withdrawal → Fails (TokenNotSupported)
 ```
 
 #### 3. Swaps
 ```solidity
-✅ Swap normal → Éxito
-✅ Swap con slippage alto → Falla (SlippageTooHigh)
-✅ Swap con deadline expirado → Falla
-✅ Swap de token no permitido → Falla
+✅ Normal swap → Success
+✅ Swap with high slippage → Fails (SlippageTooHigh)
+✅ Swap with expired deadline → Fails
+✅ Unallowed token swap → Fails
 ```
 
-#### 4. Control de Acceso
+#### 4. Access Control
 ```solidity
-✅ Cambiar price feed como CAP_MANAGER → Éxito
-✅ Cambiar price feed sin rol → Falla
-✅ Pausar como PAUSE_MANAGER → Éxito
-✅ Pausar sin rol → Falla
-✅ Agregar token como TOKEN_MANAGER → Éxito
-✅ Agregar token sin rol → Falla
+✅ Change price feed as CAP_MANAGER → Success
+✅ Change price feed without role → Fails
+✅ Pause as PAUSE_MANAGER → Success
+✅ Pause without role → Fails
+✅ Add token as TOKEN_MANAGER → Success
+✅ Add token without role → Fails
 ```
 
-### Pruebas de Integración
+### Integration Tests
 
 ```solidity
-✅ Depositar ETH → Retirar ETH → Balance correcto
-✅ Depositar Token → Swap → Balance USDC correcto
-✅ Múltiples depósitos de usuarios diferentes → Balances independientes
-✅ Pausa → Depósito falla → Unpause → Depósito exitoso
+✅ Deposit ETH → Withdraw ETH → Correct balance
+✅ Deposit Token → Swap → Correct USDC balance
+✅ Multiple deposits from different users → Independent balances
+✅ Pause → Deposit fails → Unpause → Deposit succeeds
 ```
 
 ### Fuzzing
 
 ```solidity
-✅ Depósitos aleatorios (0 a 1000 ETH)
-✅ Múltiples swaps con montos aleatorios
-✅ Combinaciones de depósitos/retiros
+✅ Random deposits (0 to 1000 ETH)
+✅ Multiple swaps with random amounts
+✅ Deposit/withdrawal combinations
 ```
 
-### Pruebas de Gas
+### Gas Tests
 
 ```
-Esperado:
+Expected:
 - deposit(): ~20,000-30,000 gas
 - depositAndSwapERC20(): ~150,000-200,000 gas
 - withdrawToken(): ~50,000-70,000 gas
@@ -339,23 +343,23 @@ Esperado:
 
 ---
 
-## Consideraciones de Gas
+## Gas Considerations
 
-### 1. Optimizaciones Implementadas
-✅ `unchecked` en operaciones seguras  
-✅ Constantes como `immutable`  
-✅ Eventos indexados  
-✅ Storage packing (implícito)  
+### 1. Implemented Optimizations
+✅ `unchecked` in safe operations  
+✅ Constants as `immutable`  
+✅ Indexed events  
+✅ Storage packing (implicit)  
 
-### 2. Áreas de Mejora
-❌ No implementado: ReentrancyGuard (pequeño costo)  
-⚠️ Validación de staleness agregará ~2k gas  
-⚠️ Multi-oracle validation agregará gas significativo  
+### 2. Areas for Improvement
+⚠️ ReentrancyGuard adds ~2k gas per call  
+⚠️ Staleness validation adds ~2k gas  
+⚠️ Multi-oracle validation would add significant gas  
 
-### 3. Estimaciones de Gas (Sepolia)
+### 3. Gas Estimates (Sepolia)
 
-| Función | Gas | Costo aprox (5 gwei) |
-|---------|-----|----------------------|
+| Function | Gas | Approx cost (5 gwei) |
+|----------|-----|----------------------|
 | deposit() | 25k | $0.10 |
 | depositAndSwapERC20() | 180k | $0.72 |
 | withdrawToken(ETH) | 55k | $0.22 |
@@ -363,43 +367,43 @@ Esperado:
 
 ---
 
-## Consideraciones de Privacidad
+## Privacy Considerations
 
-### 1. Información Visible On-Chain
-- ✅ Todos los depósitos/retiros son visibles
-- ✅ Balances por usuario son públicos
-- ✅ Transacciones de swap son transparentes
+### 1. Visible On-Chain Information
+- ✅ All deposits/withdrawals are visible
+- ✅ User balances are public
+- ✅ Swap transactions are transparent
 
-### 2. Recomendaciones
-- Uso de mixer para transacciones sensibles (opcional)
-- Privacidad de datos del usuario depende de dirección EOA
-- Considerar Privacy-Centric Wallet para interacciones
-
----
-
-## Reporte de Auditoría - Plantilla
-
-### Hallazgos Críticos
-1. 🔴 [Crítico] Nombre: Descripción
-   - Ubicación: línea X en archivo Y
-   - Impacto: Alto/Medio/Bajo
-   - Recomendación: ...
-
-### Hallazgos Importantes
-1. 🟠 [Importante] Nombre: Descripción
-   - ...
-
-### Observaciones
-1. 🟡 [Observación] Nombre: Descripción
-   - ...
-
-### Resumen
-- **Criticidad General:** 
-- **Recomendación:** Aprobar / Rechazar / Condicionado
+### 2. Recommendations
+- Use of mixer for sensitive transactions (optional)
+- User data privacy depends on EOA address
+- Consider Privacy-Centric Wallet for interactions
 
 ---
 
-## Recursos Adicionales
+## Audit Report - Template
+
+### Critical Findings
+1. 🔴 [Critical] Name: Description
+   - Location: line X in file Y
+   - Impact: High/Medium/Low
+   - Recommendation: ...
+
+### Important Findings
+1. 🟠 [Important] Name: Description
+   - ...
+
+### Observations
+1. 🟡 [Observation] Name: Description
+   - ...
+
+### Summary
+- **Overall Criticality:** 
+- **Recommendation:** Approve / Reject / Conditional
+
+---
+
+## Additional Resources
 
 - [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts)
 - [Uniswap V2 Documentation](https://docs.uniswap.org/sdk/guides/protocol)
@@ -409,6 +413,6 @@ Esperado:
 
 ---
 
-**Última Actualización:** 10 de Noviembre de 2025  
-**Versión:** 1.0  
-**Preparado para:** Auditoría de Seguridad
+**Last Updated:** 28 Nov 2025  
+**Version:** 1.0  
+**Prepared for:** Security Audit

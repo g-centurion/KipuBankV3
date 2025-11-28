@@ -1,82 +1,82 @@
-# Flow Diagrams - KipuBankV3
+# Diagramas de Flujo - KipuBankV3
 
-Complete system diagrams: extended flows and administrative modules.
+Diagramas completos del sistema: flujos extendidos y módulos administrativos.
 
-## Index
-- [1. General System Flow](#1-general-system-flow)
-- [2. Detailed Flow: ETH Deposit](#2-detailed-flow-eth-deposit)
-- [3. Detailed Flow: Deposit with Swap](#3-detailed-flow-deposit-with-swap)
-- [4. Detailed Flow: Withdrawal](#4-detailed-flow-withdrawal)
-- [5. Price Validation (Oracle Check)](#5-price-validation-oracle-check)
-- [6. Transaction Lifecycle](#6-transaction-lifecycle)
-- [7. Input Validation Matrix](#7-input-validation-matrix)
-- [8. Error Handling - Decision Tree](#8-error-handling---decision-tree)
-- [9. Security Sequence: CEI Pattern](#9-security-sequence-cei-pattern)
-- [10. Token Catalog: Add/Update](#10-token-catalog-addupdate)
-- [11. Pause and Resume](#11-pause-and-resume)
-- [12. Role Management (AccessControl)](#12-role-management-accesscontrol)
-- [13. Timelock: Propose, Schedule and Execute](#13-timelock-propose-schedule-and-execute)
-- [14. Global Limit Verification (_checkBankCap)](#14-global-limit-verification-_checkbankcap)
+## Índice
+- [1. Flujo General del Sistema](#1-flujo-general-del-sistema)
+- [2. Flujo Detallado: Depósito de ETH](#2-flujo-detallado-depósito-de-eth)
+- [3. Flujo Detallado: Depósito con Swap](#3-flujo-detallado-depósito-con-swap)
+- [4. Flujo Detallado: Retiro](#4-flujo-detallado-retiro)
+- [5. Validación de Precios (Oracle Check)](#5-validación-de-precios-oracle-check)
+- [6. Ciclo de Vida de una Transacción](#6-ciclo-de-vida-de-una-transacción)
+- [7. Matriz de Validación de Entrada](#7-matriz-de-validación-de-entrada)
+- [8. Manejo de Errores - Árbol de Decisión](#8-manejo-de-errores---árbol-de-decisión)
+- [9. Secuencia de Seguridad: CEI Pattern](#9-secuencia-de-seguridad-cei-pattern)
+- [10. Catálogo de Tokens: Alta/Actualización](#10-catálogo-de-tokens-altaactualización)
+- [11. Pausa y Reanudación](#11-pausa-y-reanudación)
+- [12. Gestión de Roles (AccessControl)](#12-gestión-de-roles-accesscontrol)
+- [13. Timelock: Proponer, Programar y Ejecutar](#13-timelock-proponer-programar-y-ejecutar)
+- [14. Verificación Límite Global (_checkBankCap)](#14-verificación-límite-global-_checkbankcap)
 
-## 1. General System Flow
+## 1. Flujo General del Sistema
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    END USER                                 │
+│                    USUARIO FINAL                            │
 └──────────┬──────────────────────────────────────────┬───────┘
            │                                          │
            ▼                                          ▼
     ┌──────────────┐                         ┌──────────────┐
-    │ Deposit ETH  │                         │ Deposit ERC20│
-    │   (Native)   │                         │    Token     │
+    │ Deposita ETH │                         │ Deposita ERC20
+    │   (Nativo)   │                         │    Token     │
     └──────┬───────┘                         └──────┬───────┘
            │                                        │
            ▼                                        ▼
     ┌──────────────────────┐           ┌─────────────────────┐
     │ deposit()            │           │ depositAndSwapERC20 │
-    │ - Validate amount    │           │ - Validate token    │
-    │ - Get ETH price      │           │ - Transfer token    │
-    │ - Validate cap       │           │ - Approve router    │
-    │ - Credit balance     │           │ - Execute swap      │
-    │ - Emit event         │           │ - Validate slippage │
-    │                      │           │ - Credit USDC       │
-    └──────────┬───────────┘           │ - Emit event        │
+    │ - Validar monto      │           │ - Validar token     │
+    │ - Obtener precio ETH │           │ - Transferir token  │
+    │ - Validar cap        │           │ - Aprobar router    │
+    │ - Acreditar balance  │           │ - Ejecutar swap     │
+    │ - Emitir evento      │           │ - Validar slippage  │
+    │                      │           │ - Acreditar USDC    │
+    └──────────┬───────────┘           │ - Emitir evento     │
                │                        └──────┬──────────────┘
                │                               │
                └────────────────┬──────────────┘
                                 │
                                 ▼
                     ┌───────────────────────┐
-                    │  BALANCE UPDATED      │
-                    │ in KipuBankV3         │
+                    │  BALANCE ACTUALIZADO  │
+                    │ en KipuBankV3         │
                     └───────────────────────┘
                                 │
                                 ▼
                     ┌───────────────────────┐
-                    │  Withdraw USDC/ETH    │
+                    │  Retira USDC/ETH      │
                     │  withdrawToken()      │
                     └────────┬──────────────┘
                              │
                              ▼
                     ┌───────────────────────┐
-                    │ FUNDS TO USER         │
+                    │ FONDOS A USUARIO      │
                     └───────────────────────┘
 ```
 
 ---
 
-## 2. Detailed Flow: ETH Deposit
+## 2. Flujo Detallado: Depósito de ETH
 
 ```
-┌─ START: deposit() ─────────────────────────────────────┐
+┌─ INICIO: deposit() ─────────────────────────────────────┐
 │                                                         │
-│  INPUT: msg.value (ETH amount)                         │
+│  INPUT: msg.value (cantidad de ETH)                   │
 │                                                         │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼
         ┌──────────────────────┐
-        │ msg.value > 0?       │
+        │ ¿msg.value > 0?      │
         └──────────┬───────────┘
                    │
         ┌──────────┴──────────┐
@@ -86,13 +86,13 @@ Complete system diagrams: extended flows and administrative modules.
     REVERT                   │
   (ZeroAmount)               ▼
                   ┌─────────────────────────────┐
-                  │ Get ETH/USD price from      │
+                  │ Obtener precio ETH/USD de   │
                   │ Chainlink (_getEthPriceInUsd)
                   └──────────┬──────────────────┘
                              │
                              ▼
                   ┌─────────────────────────────┐
-                  │ price > 0?                  │
+                  │ ¿price > 0?                 │
                   └──────────┬──────────────────┘
                              │
                   ┌──────────┴──────────┐
@@ -103,7 +103,7 @@ Complete system diagrams: extended flows and administrative modules.
          (TransferFailed)          │
                                    ▼
                         ┌──────────────────────────┐
-                        │ Validate staleness       │
+                        │ Validar staleness        │
                         │ block.timestamp - updatedAt
                         │ <= PRICE_FEED_TIMEOUT    │
                         └──────────┬───────────────┘
@@ -116,22 +116,22 @@ Complete system diagrams: extended flows and administrative modules.
                                            │
                                            ▼
                         ┌──────────────────────────────┐
-                        │ Calculate USD value of       │
-                        │ deposit                      │
+                        │ Calcular USD value del       │
+                        │ depósito                     │
                         │ pendingDepositUSD =          │
-                        │ (msg.value * price) / 10^18  │
+                        │ (msg.value * price) / 10^18 │
                         └──────────┬───────────────────┘
                                    │
                                    ▼
                         ┌──────────────────────────────┐
-                        │ Get total bank value         │
-                        │ (ETH + USDC in USD)          │
+                        │ Obtener total bank value     │
+                        │ (ETH + USDC en USD)          │
                         │ + pendingDepositUSD          │
                         └──────────┬───────────────────┘
                                    │
                                    ▼
                         ┌──────────────────────────────┐
-                        │ totalUsdValueIfAccepted      │
+                        │ ¿totalUsdValueIfAccepted     │
                         │  <= BANK_CAP_USD?            │
                         └──────────┬───────────────────┘
                                    │
@@ -165,45 +165,45 @@ Complete system diagrams: extended flows and administrative modules.
                                    │
                                    ▼
                     ┌──────────────────────────────┐
-                    │ ✓ SUCCESS                    │
-                    │ Balance updated              │
-                    │ Event emitted                │
+                    │ ✓ ÉXITO                      │
+                    │ Balance actualizado          │
+                    │ Evento emitido              │
                     └──────────────────────────────┘
 ```
 
 ---
 
-## 3. Detailed Flow: Deposit with Swap
+## 3. Flujo Detallado: Depósito con Swap
 
 ```
-┌─ START: depositAndSwapERC20() ──────────────────────────────┐
+┌─ INICIO: depositAndSwapERC20() ──────────────────────────────┐
 │                                                              │
-│  INPUTS:                                                     │
-│  - tokenIn: token address                                    │
-│  - amountIn: token amount                                    │
-│  - amountOutMin: minimum USDC to receive (slippage)         │
-│  - deadline: maximum timestamp                              │
+│  INPUTS:                                                    │
+│  - tokenIn: dirección del token                            │
+│  - amountIn: cantidad del token                            │
+│  - amountOutMin: mínimo USDC a recibir (slippage)          │
+│  - deadline: timestamp máximo                              │
 │                                                              │
 └──────────────────┬───────────────────────────────────────────┘
                    │
                    ▼
         ┌──────────────────────────────┐
-        │ CHECKS (Validation Phase)    │
+        │ CHECKS (Fase de Validación)  │
         └──────────────────────────────┘
                    │
-                   ├─── tokenIn != address(0)?
-                   ├─── tokenIn != USDC_TOKEN?
-                   ├─── amountIn > 0?
-                   ├─── token allowed in catalog?
+                   ├─── ¿tokenIn != address(0)?
+                   ├─── ¿tokenIn != USDC_TOKEN?
+                   ├─── ¿amountIn > 0?
+                   ├─── ¿token permitido en catálogo?
                    │
-                   └──► If NO on any check → REVERT
+                   └──► Si NO en cualquier check → REVERT
                         │
                         ▼
-                   If ALL OK → Continue
+                   Si TODO OK → Continue
                         │
                         ▼
         ┌──────────────────────────────────────┐
-        │ TRANSFER (Transfer Phase 1/3)        │
+        │ TRANSFER (Fase de Transferencia 1/3) │
         └──────────────────────────────────────┘
                    │
                    ▼
@@ -216,16 +216,16 @@ Complete system diagrams: extended flows and administrative modules.
         │ )                                    │
         └──────────────────────────────────────┘
                    │
-            Transfer successful?
+            ¿Transfer exitoso?
             │        │
             NO       YES
             │        │
           REVERT    ▼
                    ┌─────────────────────────────┐
-                   │ DETERMINE SWAP ROUTE        │
+                   │ DETERMINAR RUTA DE SWAP     │
                    └──────────────────────────────┘
                    │
-              tokenIn == WETH?
+              ¿tokenIn == WETH?
               │           │
              YES          NO
               │            │
@@ -241,9 +241,9 @@ Complete system diagrams: extended flows and administrative modules.
                    ▼
         ┌──────────────────────────────┐
         │ getAmountsOut()              │
-        │ (View - no state change)     │
+        │ (View - sin cambiar estado)  │
         │                              │
-        │ Estimate USDC to receive     │
+        │ Estima USDC a recibir        │
         │ amounts[] =                  │
         │ [amountIn, ..., usdcOut]     │
         └──────────┬───────────────────┘
@@ -256,17 +256,17 @@ Complete system diagrams: extended flows and administrative modules.
                    │
                    ▼
         ┌──────────────────────────────┐
-        │ VALIDATE BANK CAP            │
+        │ VALIDAR BANK CAP             │
         │ _checkBankCap(estimatedUsd)  │
         └──────────┬───────────────────┘
                    │
-        Cap OK?    │
+        ¿Cap OK?   │
             │      │
            NO      YES
             │      │
           REVERT  ▼
                ┌────────────────────────────────┐
-               │ APPROVE (Interaction 2/3)      │
+               │ APPROVE (Interacción 2/3)      │
                │                                │
                │ safeIncreaseAllowance(         │
                │   spender: I_ROUTER,           │
@@ -276,7 +276,7 @@ Complete system diagrams: extended flows and administrative modules.
                         │
                         ▼
                ┌────────────────────────────────┐
-               │ EXECUTE SWAP (Interaction 3/3) │
+               │ EJECUTAR SWAP (Interacción 3/3)│
                │                                │
                │ I_ROUTER.swapExactTokensFor    │
                │ Tokens(                        │
@@ -290,14 +290,14 @@ Complete system diagrams: extended flows and administrative modules.
                         │
                         ▼
                ┌────────────────────────────────┐
-               │ actualAmounts[] = result       │
+               │ actualAmounts[] = resultado    │
                │ usdcReceived =                 │
                │ actualAmounts[length - 1]      │
                └────────┬─────────────────────────┘
                         │
                         ▼
                ┌────────────────────────────────┐
-               │ usdcReceived >=                │
+               │ ¿usdcReceived >=               │
                │  amountOutMin?                 │
                └────────┬─────────────────────────┘
                         │
@@ -329,28 +329,28 @@ Complete system diagrams: extended flows and administrative modules.
                                  │
                                  ▼
                     ┌────────────────────────────────┐
-                    │ ✓ SUCCESS                      │
-                    │ Token swapped to USDC          │
-                    │ USDC balance updated           │
+                    │ ✓ ÉXITO                        │
+                    │ Token swapped a USDC           │
+                    │ Balance en USDC actualizado   │
                     └────────────────────────────────┘
 ```
 
 ---
 
-## 4. Detailed Flow: Withdrawal
+## 4. Flujo Detallado: Retiro
 
 ```
-┌─ START: withdrawToken() ──────────────────────────────────┐
+┌─ INICIO: withdrawToken() ──────────────────────────────────┐
 │                                                            │
-│  INPUTS:                                                   │
-│  - tokenAddress: 0x0...0 (ETH) or USDC_ADDRESS            │
-│  - amountToWithdraw: amount to withdraw                   │
+│  INPUTS:                                                  │
+│  - tokenAddress: 0x0...0 (ETH) o USDC_ADDRESS            │
+│  - amountToWithdraw: cantidad a retirar                  │
 │                                                            │
 └──────────────────┬────────────────────────────────────────┘
                    │
                    ▼
         ┌──────────────────────────┐
-        │ amountToWithdraw > 0?    │
+        │ ¿amountToWithdraw > 0?    │
         └──────────┬───────────────┘
                    │
         ┌──────────┴──────────┐
@@ -359,7 +359,7 @@ Complete system diagrams: extended flows and administrative modules.
         │                    │
       REVERT                ▼
      (ZeroAmount)  ┌────────────────────────────┐
-                   │ tokenAddress in            │
+                   │ ¿tokenAddress in           │
                    │ [address(0), USDC]?        │
                    └──────────┬────────────────┘
                               │
@@ -369,7 +369,7 @@ Complete system diagrams: extended flows and administrative modules.
                     │                  │
                  REVERT               ▼
             (TokenNotSupported)  ┌──────────────┐
-                                 │ amount <=    │
+                                 │ ¿amount <=   │
                                  │ MAX_WITH_TX? │
                                  └──────┬───────┘
                                         │
@@ -386,7 +386,7 @@ Complete system diagrams: extended flows and administrative modules.
                                                  │
                                                  ▼
                                         ┌──────────────────┐
-                                        │ userBalance >=   │
+                                        │ ¿userBalance >=  │
                                         │  amount?         │
                                         └────────┬─────────┘
                                                  │
@@ -407,12 +407,12 @@ Complete system diagrams: extended flows and administrative modules.
                                                           │
                                                           ▼
                                         ┌──────────────────────────┐
-                                        │ TRANSFER (Interaction)   │
+                                        │ TRANSFER (Interacción)   │
                                         └──────────────────────────┘
                                                           │
                             ┌─────────────────────────────┴─────────┐
                             │                                       │
-                    tokenAddress == ETH?                           │
+                    ¿tokenAddress == ETH?                           │
                             │                                       │
                        YES   │                                    NO │
                             │                                       │
@@ -425,10 +425,10 @@ Complete system diagrams: extended flows and administrative modules.
         │ payable(msg.sender)      │          │   tokenAddress,            │
         │ .call{value: amount}("");│          │   msg.sender,              │
         │                          │          │   amount                   │
-        │ success?                 │          │ )                          │
+        │ ¿success?                │          │ )                          │
         └────────┬─────────────────┘          └────────┬───────────────────┘
                  │                                     │
-        ┌────────┴─────────┐                  Transfer successful?
+        ┌────────┴─────────┐                  Transfer exitoso?
         │                  │                     │        │
        NO                 YES                   NO       YES
         │                  │                    │        │
@@ -446,37 +446,37 @@ Complete system diagrams: extended flows and administrative modules.
                         │
                         ▼
              ┌──────────────────────────┐
-             │ ✓ SUCCESS                │
-             │ Funds transferred        │
-             │ Balance updated          │
-             │ Event emitted            │
+             │ ✓ ÉXITO                  │
+             │ Fondos transferidos      │
+             │ Balance actualizado      │
+             │ Evento emitido          │
              └──────────────────────────┘
 ```
 
 ---
 
-## 5. Price Validation (Oracle Check)
+## 5. Validación de Precios (Oracle Check)
 
 ```
 ┌─ _getEthPriceInUsd() ─────────────────────────────┐
 │                                                   │
-│  Gets price from Chainlink with validations      │
+│  Obtiene precio de Chainlink con validaciones    │
 │                                                   │
 └───────────────────┬───────────────────────────────┘
                     │
                     ▼
         ┌─────────────────────────────┐
-        │ latestRoundData() from      │
+        │ latestRoundData() de        │
         │ Chainlink Aggregator        │
         │                             │
-        │ Gets:                       │
+        │ Obtiene:                    │
         │ - price (int256)            │
         │ - timestamp                 │
         └─────────┬───────────────────┘
                   │
                   ▼
         ┌─────────────────────────────┐
-        │ price > 0?                  │
+        │ ¿price > 0?                 │
         └─────────┬───────────────────┘
                   │
         ┌─────────┴─────────┐
@@ -491,7 +491,7 @@ Complete system diagrams: extended flows and administrative modules.
                    │ block.timestamp -    │
                    │ updatedAt            │
                    │                      │
-                   │ timeSinceUpdate <=   │
+                   │ ¿timeSinceUpdate <=  │
                    │ PRICE_FEED_TIMEOUT?  │
                    └────────┬─────────────┘
                             │
@@ -503,9 +503,9 @@ Complete system diagrams: extended flows and administrative modules.
             (StalePrice)  ┌──────────────────────┐
                           │ Price Deviation Check│
                           │                      │
-                          │ lastRecordedPrice >  │
+                          │ ¿lastRecordedPrice > │
                           │ 0?                   │
-                          │ (First time?)        │
+                          │ (Primera vez?)       │
                           └────────┬─────────────┘
                                    │
                          ┌─────────┴─────────┐
@@ -514,13 +514,13 @@ Complete system diagrams: extended flows and administrative modules.
                          │                  │
                          ▼                  ▼
                   ┌──────────────────┐   Skip check,
-                  │ Calculate        │   update
-                  │ maxAllowedDiff   │   and return
+                  │ Calcular         │   actualizar
+                  │ maxAllowedDiff   │   y retornar
                   │                  │
                   │ = price * 500 /  │
                   │   10000 (5%)     │
                   │                  │
-                  │ deviation >      │
+                  │ ¿deviation >     │
                   │ maxAllowedDiff?  │
                   └────────┬─────────┘
                            │
@@ -533,7 +533,7 @@ Complete system diagrams: extended flows and administrative modules.
                              │ Update recorded  │
                              │ price            │
                              │                  │
-                             │ lastRecordedPrice│
+                             │ lastRecordedPrice
                              │ = price          │
                              │                  │
                              │ Return price     │
@@ -542,258 +542,259 @@ Complete system diagrams: extended flows and administrative modules.
 
 ---
 
-## 6. Transaction Lifecycle
+## 6. Ciclo de Vida de una Transacción
 
 ```
                     ┌─────────────────────────┐
-                    │  USER IN FRONTEND       │
-                    │  (Wallet connected)     │
+                    │  USUARIO EN FRONTEND    │
+                    │  (Wallet conectada)     │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ 1. PREPARE TX           │
+                    │ 1. PREPARAR TX          │
                     │                         │
-                    │ - Select function       │
-                    │ - Enter parameters      │
-                    │ - Estimate gas          │
+                    │ - Seleccionar función  │
+                    │ - Ingresarparametrros  │
+                    │ - Estimar gas          │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ 2. SIGN TX              │
+                    │ 2. FIRMAR TX            │
                     │                         │
-                    │ - Wallet confirmation   │
-                    │ - User reviews data     │
-                    │ - Sign with key         │
+                    │ - Confirmación en      │
+                    │   wallet               │
+                    │ - Usuario revisa datos │
+                    │ - Firma con clave      │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ 3. SEND TX TO NETWORK   │
+                    │ 3. ENVIAR TX A RED      │
                     │                         │
-                    │ - TX in mempool         │
-                    │ - Waiting for miner/    │
+                    │ - TX en mempool         │
+                    │ - Esperando minero/     │
                     │   validator             │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ 4. EXECUTE ON BLOCKCHAIN│
+                    │ 4. EJECUTAR EN BLOCKCHAIN
                     │                         │
-                    │ - Validate format       │
-                    │ - Execute smart contract│
-                    │ - Update state          │
-                    │ - Emit events           │
+                    │ - Validar formato       │
+                    │ - Ejecutar smart contract
+                    │ - Actualizar estado     │
+                    │ - Emitir eventos        │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ 5. CONFIRM IN BLOCK     │
+                    │ 5. CONFIRMAR EN BLOQUE  │
                     │                         │
-                    │ - Included in block     │
-                    │ - Gas spent             │
-                    │ - Received confirmation │
+                    │ - Incluida en bloque    │
+                    │ - Gas gastado           │
+                    │ - Recibida confirmación │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ 6. UPDATE FRONTEND      │
+                    │ 6. ACTUALIZAR FRONTEND  │
                     │                         │
-                    │ - Listen to events      │
-                    │ - Update UI             │
-                    │ - Show confirmation     │
+                    │ - Escuchar eventos      │
+                    │ - Actualizar UI         │
+                    │ - Mostrar confirmación  │
                     └────────────┬────────────┘
                                  │
                                  ▼
                     ┌─────────────────────────┐
-                    │ ✓ TRANSACTION COMPLETE  │
+                    │ ✓ TRANSACCIÓN COMPLETA  │
                     └─────────────────────────┘
 ```
 
 ---
 
-## 7. Input Validation Matrix
+## 7. Matriz de Validación de Entrada
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   CRITICAL VALIDATIONS                      │
+│                   VALIDACIONES CRÍTICAS                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
-│ deposit()                                                    │
-│  ├─ msg.value > 0                     ✓ Validated           │
-│  ├─ ETH price > 0                     ✓ Validated           │
-│  ├─ Price not stale (< 1h)            ✓ Validated           │
-│  ├─ Price deviation < 5%              ✓ Validated           │
-│  └─ (current + new) <= BANK_CAP       ✓ Validated           │
+│ deposit()                                                   │
+│  ├─ msg.value > 0                     ✓ Validado            │
+│  ├─ Precio ETH > 0                    ✓ Validado            │
+│  ├─ Precio no stale (< 1h)            ✓ Validado            │
+│  ├─ Price deviation < 5%              ✓ Validado            │
+│  └─ (current + new) <= BANK_CAP       ✓ Validado            │
 │                                                              │
-│ depositAndSwapERC20()                                       │
-│  ├─ tokenIn != address(0)             ✓ Validated           │
-│  ├─ tokenIn != USDC                   ✓ Validated           │
-│  ├─ amountIn > 0                      ✓ Validated           │
-│  ├─ Token allowed in catalog          ✓ Validated           │
-│  ├─ Transfer successful               ✓ SafeERC20           │
-│  ├─ Valid swap route                  ✓ Determined          │
-│  ├─ Slippage <= amountOutMin          ✓ Validated           │
-│  ├─ Deadline not expired              ✓ Validated           │
-│  └─ (current + swap) <= BANK_CAP      ✓ Validated           │
+│ depositAndSwapERC20()                                      │
+│  ├─ tokenIn != address(0)             ✓ Validado            │
+│  ├─ tokenIn != USDC                   ✓ Validado            │
+│  ├─ amountIn > 0                      ✓ Validado            │
+│  ├─ Token permitido en catálogo       ✓ Validado            │
+│  ├─ Transfer exitoso                  ✓ SafeERC20           │
+│  ├─ Ruta de swap válida               ✓ Determinada         │
+│  ├─ Slippage <= amountOutMin          ✓ Validado            │
+│  ├─ Deadline no expirado              ✓ Validado            │
+│  └─ (current + swap) <= BANK_CAP      ✓ Validado            │
 │                                                              │
-│ withdrawToken()                                             │
-│  ├─ amountToWithdraw > 0              ✓ Validated           │
-│  ├─ tokenAddress in [ETH, USDC]       ✓ Validated           │
-│  ├─ amount <= MAX_WITHDRAWAL_PER_TX   ✓ Validated           │
-│  ├─ userBalance >= amount             ✓ Validated           │
-│  └─ Transfer successful               ✓ SafeERC20/call      │
+│ withdrawToken()                                            │
+│  ├─ amountToWithdraw > 0              ✓ Validado            │
+│  ├─ tokenAddress en [ETH, USDC]       ✓ Validado            │
+│  ├─ amount <= MAX_WITHDRAWAL_PER_TX   ✓ Validado            │
+│  ├─ userBalance >= amount             ✓ Validado            │
+│  └─ Transfer exitoso                  ✓ SafeERC20/call      │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 8. Error Handling - Decision Tree
+## 8. Manejo de Errores - Árbol de Decisión
 
 ```
-┌─ TX Failed ──────────────────────────────────┐
+┌─ TX Fallida ──────────────────────────────────┐
 │                                               │
 └───────┬─────────────────────────────────────┘
         │
-        ├─ CUSTOM ERROR?
+        ├─ ¿CUSTOM ERROR?
         │  │
         │  ├─ Bank__ZeroAmount
-        │  │   → You entered 0
+        │  │   → Ingresaste 0
         │  │
         │  ├─ Bank__DepositExceedsCap
-        │  │   → Exceeds bank limit
+        │  │   → Supera el límite del banco
         │  │
         │  ├─ Bank__WithdrawalExceedsLimit
-        │  │   → Exceeds per-TX limit
+        │  │   → Supera límite por TX
         │  │
         │  ├─ Bank__InsufficientBalance
-        │  │   → Insufficient balance
+        │  │   → No tienes suficiente balance
         │  │
         │  ├─ Bank__SlippageTooHigh
-        │  │   → Price changed too much (MEV)
+        │  │   → El precio cambió mucho (MEV)
         │  │
         │  ├─ Bank__StalePrice
-        │  │   → Oracle price outdated
+        │  │   → Precio del oráculo desactualizado
         │  │
         │  ├─ Bank__PriceDeviation
-        │  │   → Price deviated >5%
+        │  │   → Precio se desvió >5%
         │  │
         │  ├─ Bank__TokenNotSupported
-        │  │   → Token not allowed
+        │  │   → Token no permitido
         │  │
         │  ├─ Bank__InvalidTokenAddress
-        │  │   → Invalid address
+        │  │   → Dirección inválida
         │  │
         │  └─ Bank__TransferFailed
-        │      → Transfer error
+        │      → Error en transferencia
         │
-        └─ STANDARD ERROR?
+        └─ ¿ERROR ESTÁNDAR?
            │
            ├─ Pausable.EnforcedPause
-           │   → Contract is paused
+           │   → Contrato está pausado
            │
            ├─ AccessControl.AccessControlUnauthorizedAccount
-           │   → No permissions
+           │   → No tienes permisos
            │
            ├─ ERC20InsufficientAllowance
-           │   → Token not approved
+           │   → Token no aprobado
            │
            ├─ ERC20InsufficientBalance
-           │   → Insufficient token balance
+           │   → Balance insuficiente de token
            │
            └─ ReentrancyGuardReentrantCall
-               → Reentrancy detected
+               → Reentrancia detectada
 ```
 
 ---
 
-## 9. Security Sequence: CEI Pattern
+## 9. Secuencia de Seguridad: CEI Pattern
 
 ```
-SECURE FUNCTION (CEI - Checks Effects Interactions)
+FUNCIÓN SEGURA (CEI - Checks Effects Interactions)
 
 ┌─ CHECKS ────────────────────────────┐
-│ 1. Validate inputs                  │
-│ 2. Verify balances                  │
-│ 3. Verify limits                    │
-│ 4. Verify permissions               │
-│ 5. Verify contract state            │
+│ 1. Validar inputs                   │
+│ 2. Verificar balances               │
+│ 3. Verificar límites                │
+│ 4. Verificar permisos               │
+│ 5. Verificar estado del contrato    │
 │                                      │
-│ ⚠️  DO NOT modify state here        │
-│ ⚠️  DO NOT make external calls      │
+│ ⚠️  NO modificar estado aquí        │
+│ ⚠️  NO hacer llamadas externas      │
 │                                      │
-│ ✓ If fails: REVERT without changes  │
+│ ✓ Si falla: REVERT sin cambios      │
 └──────────────────┬──────────────────┘
                    │
                    ▼
 ┌─ EFFECTS ───────────────────────────┐
-│ 1. Update balances                  │
-│ 2. Update counters                  │
-│ 3. Update state                     │
+│ 1. Actualizar balances              │
+│ 2. Actualizar contadores            │
+│ 3. Actualizar estado                │
 │                                      │
-│ ✓ ALL updates here                  │
-│ ✓ BEFORE external interactions      │
+│ ✓ TODAS las actualizaciones aquí    │
+│ ✓ ANTES de interacciones externas   │
 │                                      │
-│ ⚠️  DO NOT make external calls      │
+│ ⚠️  NO hacer llamadas externas      │
 └──────────────────┬──────────────────┘
                    │
                    ▼
 ┌─ INTERACTIONS ──────────────────────┐
-│ 1. Token transfers                  │
-│ 2. Calls to other contracts         │
-│ 3. Uniswap calls                    │
-│ 4. Event emission                   │
+│ 1. Transferencias de tokens         │
+│ 2. Llamadas a otros contratos       │
+│ 3. Llamadas a Uniswap               │
+│ 4. Emisión de eventos               │
 │                                      │
-│ ✓ State already updated             │
-│ ✓ Safe against reentrancy           │
-│ ✓ ReentrancyGuard active            │
+│ ✓ Estado ya actualizado             │
+│ ✓ Seguro contra reentrancia         │
+│ ✓ ReentrancyGuard activo            │
 └──────────────────┬──────────────────┘
                    │
                    ▼
-              ✓ SECURE
+              ✓ SEGURO
 ```
 
 ---
 
-**Documentation generated:** 28 Nov 2025
+**Documentación generada:** 10 de Noviembre de 2025
 
 ---
 
-## 10. Token Catalog: Add/Update
+## 10. Catálogo de Tokens: Alta/Actualización
 
 ```
 ┌─ addOrUpdateToken(token, priceFeed, decimals) ───────────────┐
 │                                                              │
-│  REQUIRES: caller has TOKEN_MANAGER_ROLE                     │
+│  REQUIERE: caller tiene TOKEN_MANAGER_ROLE                  │
 └───────────┬──────────────────────────────────────────────────┘
                   │
                   ▼
       ┌──────────────────────────┐
-      │ token != address(0)?     │
+      │ ¿token != address(0)?    │
       └──────────┬───────────────┘
                       │
             ┌──────┴───────┐
             │              │
-          NO             YES
+          NO             SÍ
             │              │
       REVERT       ┌─────────────────────────────┐
- (InvalidToken)    │ sTokenCatalog[token] = {    │
-                   │   priceFeed, decimals,      │
-                   │   isAllowed: true           │
-                   │ }                           │
-                   └─────────────────────────────┘
+ (InvalidToken)  │ sTokenCatalog[token] = {    │
+                         │   priceFeed, decimals,      │
+                         │   isAllowed: true           │
+                         │ }                           │
+                         └─────────────────────────────┘
 ```
 
 ---
 
-## 11. Pause and Resume
+## 11. Pausa y Reanudación
 
 ```
 ┌─ pause() / unpause() ──────────────────────────────┐
 │                                                     │
-│ REQUIRES: caller has PAUSE_MANAGER_ROLE            │
+│ REQUIERE: caller tiene PAUSE_MANAGER_ROLE          │
 └──────────────────┬─────────────────────────────────┘
                             │
                             ▼
@@ -802,15 +803,15 @@ SECURE FUNCTION (CEI - Checks Effects Interactions)
              └─────────────────────┘
                               │
                               ▼
-                Paused / active state
+                Estado pausado / activo
 ```
 
 ---
 
-## 12. Role Management (AccessControl)
+## 12. Gestión de Roles (AccessControl)
 
 ```
-DEFAULT_ADMIN_ROLE can:
+DEFAULT_ADMIN_ROLE puede:
    ├─ grantRole(X_ROLE, account)
    └─ revokeRole(X_ROLE, account)
 
@@ -827,31 +828,31 @@ TOKEN_MANAGER_ROLE:
 
 ---
 
-## 13. Timelock: Propose, Schedule and Execute
+## 13. Timelock: Proponer, Programar y Ejecutar
 
 ```
 ┌─ TimelockKipuBank (OZ TimelockController) ───────────────────────────┐
-│ MIN_DELAY = 2 days                                                   │
+│ MIN_DELAY = 2 días                                                   │
 ├──────────────────────────────────────────────────────────────────────┤
 │ 1) Propose: proposePriceFeedChange(bank, newFeed)                    │
 │    └─ schedule(... setEthPriceFeedAddress(newFeed) ...)              │
-│ 2) Wait DELAY                                                        │
+│ 2) Esperar DELAY                                                     │
 │ 3) Execute: executePriceFeedChange(bank, newFeed, salt)              │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 14. Global Limit Verification (_checkBankCap)
+## 14. Verificación Límite Global (_checkBankCap)
 
 ```
 ┌─ _checkBankCap(pendingUsd) ──────────────────────────────────────────┐
 │ total = _getBankTotalUsdValue(pendingUsd)                            │
-│ total <= BANK_CAP_USD?                                               │
+│ ¿total <= BANK_CAP_USD?                                             │
 ├───────────────┬──────────────────────────────────────────────────────┤
-│ NO            │ YES                                                  │
+│ NO            │ SÍ                                                   │
 │               │                                                      │
-│ REVERT        │ continue                                             │
+│ REVERT        │ continuar                                            │
 │ (DepositExceedsCap)                                                  │
 └───────────────┴──────────────────────────────────────────────────────┘
 ```
