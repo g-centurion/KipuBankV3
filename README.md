@@ -5,10 +5,10 @@
 <strong>Contrato desplegado en Sepolia</strong>
 
 <p>
-<strong>Contrato:</strong> <code>0xCB2C14F98fA5f016684e8FC3F96830C66330b122</code> ·
-<strong>Tx:</strong> <code>0x0650f5f96624127a21172ba302e81bcee24dd9f972eddc79ef4991d8a3b7543c</code><br/>
-<a href="https://sepolia.etherscan.io/address/0xCB2C14F98fA5f016684e8FC3F96830C66330b122#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0xCB2C14F98fA5f016684e8FC3F96830C66330b122">Blockscout</a>
+<strong>Contrato:</strong> <code>0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9</code> ·
+<strong>Tx:</strong> <code>0x39e16f646659e63d285027d84659eb060b453b3f12f457cfe75d5f1eed247e25</code><br/>
+<a href="https://sepolia.etherscan.io/address/0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9">Blockscout</a>
 </p>
 
 </div>
@@ -415,14 +415,17 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 <summary><h2>Interacción on-chain (cast)</h2></summary>
 
 ```bash
-# Max withdrawal
-cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
+# Dirección del contrato en Sepolia
+CONTRACT_ADDRESS=0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9
 
-# Router
-cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
+# Lectura: Max withdrawal
+cast call $CONTRACT_ADDRESS "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
 
-# Ver rol admin
-cast call 0x773808318d5CE8Bc953398B4A0580e53502eAAe1 "hasRole(bytes32,address)(bool)" \
+# Lectura: Router
+cast call $CONTRACT_ADDRESS "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
+
+# Lectura: Ver rol admin
+cast call $CONTRACT_ADDRESS "hasRole(bytes32,address)(bool)" \
    0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
    --rpc-url $RPC_URL_SEPOLIA
 ```
