@@ -5,10 +5,10 @@
 <strong>Contrato desplegado en Sepolia</strong>
 
 <p>
-<strong>Contrato:</strong> <code>0x773808318d5CE8Bc953398B4A0580e53502eAAe1</code> ·
-<strong>Tx:</strong> <code>0xc2ff113063914519b554741930fb2854dbec5fd3bab195f1ad5330ae41dfd723</code><br/>
-<a href="https://sepolia.etherscan.io/address/0x773808318d5ce8bc953398b4a0580e53502eaae1#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x773808318d5CE8Bc953398B4A0580e53502eAAe1">Blockscout</a>
+<strong>Contrato:</strong> <code>0xCB2C14F98fA5f016684e8FC3F96830C66330b122</code> ·
+<strong>Tx:</strong> <code>0x0650f5f96624127a21172ba302e81bcee24dd9f972eddc79ef4991d8a3b7543c</code><br/>
+<a href="https://sepolia.etherscan.io/address/0xCB2C14F98fA5f016684e8FC3F96830C66330b122#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0xCB2C14F98fA5f016684e8FC3F96830C66330b122">Blockscout</a>
 </p>
 
 </div>
