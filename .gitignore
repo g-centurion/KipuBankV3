@@ -1,9 +1,7 @@
-# Compiler files
+# Foundry artifacts
 cache/
 out/
 abi/
-
-# Broadcast logs (ignore all)
 broadcast/
 
 # Coverage reports
@@ -11,21 +9,20 @@ coverage-html/
 lcov.info
 *.lcov
 
-# Docs
-# Ignora todo en docs/ salvo el informe educativo (MD y PDF)
-# (permitimos versionar este informe pedagógico)
-docs/**
-!docs/Informe_Educativo_KipuBankV3_TP4.md
-!docs/Informe_Educativo_KipuBankV3_TP4.pdf
-
-# Dotenv file
+# Environment variables
 .env
-.env.local
+.env.*
+!.env.example
+
+# Local development folder (scripts, backups, deployment guides)
+.local/
 
 # Backup files
 *.bak
 *.backup
 *_backup.*
+*_ES.md
+*_old.*
 
 # Temporary files
 *.log
@@ -33,6 +30,8 @@ job-logs.txt
 .dummy
 tmp_*
 *_tmp.*
+apply_test.txt
+tmp_patch_marker.txt
 
 # Windows temporary files
 *.Zone.Identifier
@@ -46,45 +45,14 @@ tmp_*
 *~
 .DS_Store
 
-# Lock files (optional - keep for reproducibility)
-# foundry.lock
-
-# Local analysis and cleanup documents (not for repo)
-ANALISIS_*.md
-LIMPIEZA_*.md
-*_REPO.md
-SESION_*.md
-CAMBIOS_*.md
-RESUMEN_*.md
-*_TEMP*.md
-GUIA_*.md
-LIMPIE*.md
-RESUMEN_CORRECIONES*.md
-ANALISIS_TEST_FAILURES*.md
-ENTREGABLES.md
-INFORME_COMPLETO.md
-SECURITY_SLITHER.md
-DESPLIEGUE_*.md
-REPO_LIMPIO.md
-RESUMEN_LIMPIEZA.txt
-RESUMEN_FINAL_SESION.md
-ENTREGABLES.md
-DESPLIEGUE_*.md
-INFORME_COMPLETO.md
-SECURITY_SLITHER.md
-
-# Temporary deployment scripts
+# Scripts de deployment temporal (ahora en .local/)
 deploy.sh
 deploy_wsl.sh
 call_router.sh
-*.sh
 
 # Temporary patch files
 .patch_tmp
 *.patch_tmp
-
-# ABI folder (regenerable with forge build)
-abi/
 
 # .env.example should be kept for reference
 !.env.example
