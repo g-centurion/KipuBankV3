@@ -39,12 +39,33 @@ contract TimelockKipuBank is TimelockController {
      * @dev Esta es una función auxiliar para mejorar UX
      */
     function proposePriceFeedChange(address kipuBankAddress, address newPriceFeed) external {
-        bytes32 id = this.hashOperation(kipuBankAddress, 0, abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed), bytes32(0), bytes32(0));
+        bytes32 id = this.hashOperation(
+            kipuBankAddress,
+            0,
+            abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed),
+            bytes32(0),
+            bytes32(0)
+        );
 
         // Use external calls (this.) so the compiler can convert memory -> calldata for the encoded bytes
-        this.schedule(kipuBankAddress, 0, abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed), bytes32(0), bytes32(0), MIN_DELAY);
+        this.schedule(
+            kipuBankAddress,
+            0,
+            abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed),
+            bytes32(0),
+            bytes32(0),
+            MIN_DELAY
+        );
 
-        emit CallScheduled(id, 0, kipuBankAddress, 0, abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed), bytes32(0), MIN_DELAY);
+        emit CallScheduled(
+            id,
+            0,
+            kipuBankAddress,
+            0,
+            abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed),
+            bytes32(0),
+            MIN_DELAY
+        );
     }
 
     /**
@@ -52,6 +73,12 @@ contract TimelockKipuBank is TimelockController {
      * @dev Debe ser llamado después del delay
      */
     function executePriceFeedChange(address kipuBankAddress, address newPriceFeed, bytes32 salt) external {
-        this.execute(kipuBankAddress, 0, abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed), bytes32(0), salt);
+        this.execute(
+            kipuBankAddress,
+            0,
+            abi.encodeWithSignature("setEthPriceFeedAddress(address)", newPriceFeed),
+            bytes32(0),
+            salt
+        );
     }
 }

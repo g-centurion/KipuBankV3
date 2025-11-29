@@ -48,8 +48,6 @@ error Bank__StalePrice(uint256 updateTime, uint256 currentTime);
 /// @param previousPrice The previously recorded price.
 error Bank__PriceDeviation(int256 currentPrice, int256 previousPrice);
 
-
-
 /// @dev Emitted upon a successful ETH or ERC-20 deposit or a successful swap to USDC.
 /// @param user The address of the depositor.
 /// @param token The token address (address(0) for ETH, USDC address for swaps).
@@ -83,7 +81,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /// @notice Maximum withdrawal amount per transaction.
     uint256 public immutable MAX_WITHDRAWAL_PER_TX;
-    
+
     /// @notice Identifier for native ETH (address(0)).
     address private constant ETH_TOKEN = address(0);
 
@@ -172,11 +170,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         USDC_TOKEN = usdcAddress_;
         WETH_TOKEN = I_ROUTER.WETH();
 
-        sTokenCatalog[USDC_TOKEN] = TokenData({
-            priceFeedAddress: address(0),
-            tokenDecimals: 6,
-            isAllowed: true
-        });
+        sTokenCatalog[USDC_TOKEN] = TokenData({priceFeedAddress: address(0), tokenDecimals: 6, isAllowed: true});
         sTokenCatalog[ETH_TOKEN] =
             TokenData({priceFeedAddress: ethPriceFeedAddress_, tokenDecimals: 18, isAllowed: true});
     }
@@ -243,13 +237,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).safeIncreaseAllowance(address(I_ROUTER), amountIn);
 
-        uint256[] memory actualAmounts = I_ROUTER.swapExactTokensForTokens(
-            amountIn,
-            amountOutMin,
-            path,
-            address(this),
-            deadline
-        );
+        uint256[] memory actualAmounts =
+            I_ROUTER.swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
 
         uint256 usdcReceived = actualAmounts[actualAmounts.length - 1];
         if (usdcReceived < amountOutMin) revert Bank__SlippageTooHigh();

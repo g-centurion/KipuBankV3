@@ -188,22 +188,21 @@ contract KipuBankV3Test is Test {
         assertEq(bank.balances(user, address(usdc)), expected);
     }
 
- function testPauseAndUnpauseByDeployer() public {
-    // El deployer puede pausar y despausar
-    bank.pause();
-    assertTrue(bank.paused());
-    bank.unpause();
-    assertFalse(bank.paused());
-}
+    function testPauseAndUnpauseByDeployer() public {
+        // El deployer puede pausar y despausar
+        bank.pause();
+        assertTrue(bank.paused());
+        bank.unpause();
+        assertFalse(bank.paused());
+    }
 
-function testPauseFailsForUserWithoutRole() public {
-    // Usuario sin rol intenta pausar (debe revertir)
-    vm.prank(user);
-    // Usar expectRevert genérico para cualquier revert relacionado con AccessControl
-    vm.expectRevert();
-    bank.pause();
-}
-
+    function testPauseFailsForUserWithoutRole() public {
+        // Usuario sin rol intenta pausar (debe revertir)
+        vm.prank(user);
+        // Usar expectRevert genérico para cualquier revert relacionado con AccessControl
+        vm.expectRevert();
+        bank.pause();
+    }
 
     function testDepositExceedsCap() public {
         uint256 hugeAmount = 1_000_000 ether; // Intentar depositar más del cap
@@ -238,8 +237,8 @@ function testPauseFailsForUserWithoutRole() public {
         // Set price to negative to test oracle validation
         MockAggregator invalidPriceFeed = new MockAggregator(-1);
 
-    // The deployer (this test contract) already has CAP_MANAGER_ROLE from constructor,
-    // so no need to prank/grant roles here — just set the feed directly.
+        // The deployer (this test contract) already has CAP_MANAGER_ROLE from constructor,
+        // so no need to prank/grant roles here — just set the feed directly.
         bank.setEthPriceFeedAddress(address(invalidPriceFeed));
 
         vm.prank(user);
@@ -510,7 +509,7 @@ function testPauseFailsForUserWithoutRole() public {
         // Intento de usar el rol debe fallar
         MockAggregator newPriceFeed = new MockAggregator(int256(2200 * 10 ** 8));
         vm.prank(newManager);
-            vm.expectRevert(
+        vm.expectRevert(
             abi.encodeWithSelector(
                 IAccessControl.AccessControlUnauthorizedAccount.selector, newManager, CAP_MANAGER_ROLE
             )
@@ -771,7 +770,7 @@ function testPauseFailsForUserWithoutRole() public {
     function testMaxWithdrawalEnforcement() public {
         // Depositar el máximo permitido más un poco
         uint256 maxWithdrawal = bank.MAX_WITHDRAWAL_PER_TX();
-        uint256 depositAmount = maxWithdrawal + 0.5 ether;  // Total: 1.5 ether
+        uint256 depositAmount = maxWithdrawal + 0.5 ether; // Total: 1.5 ether
 
         vm.deal(user, depositAmount);
         vm.prank(user);
