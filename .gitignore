@@ -4,13 +4,15 @@ out/
 abi/
 broadcast/
 
-# Coverage reports
+# Coverage reports (solo local, muy pesados)
+coverage/
 coverage-html/
 lcov.info
 *.lcov
 
 # Documentation artifacts
 docs/*.html
+docs/*.pdf
 
 # Environment variables
 .env
@@ -26,8 +28,9 @@ docs/*.html
 *_backup.*
 *_ES.md
 *_old.*
+README.md.backup
 
-# Temporary files
+# Temporary files and artifacts
 *.log
 job-logs.txt
 .dummy
@@ -35,6 +38,17 @@ tmp_*
 *_tmp.*
 apply_test.txt
 tmp_patch_marker.txt
+deploy-output.log
+deploy_new.log
+deploy_final.log
+
+# Bytecode comparison artifacts (solo para verificación local)
+local_bytecode.txt
+local_deployed_bytecode.txt
+onchain_deployed_bytecode.txt
+flattened.sol
+standard-input.json
+extract_metadata.py
 
 # Windows temporary files
 *.Zone.Identifier
@@ -51,7 +65,7 @@ tmp_patch_marker.txt
 *~
 .DS_Store
 
-# Scripts de deployment temporal (ahora en .local/)
+# Scripts de deployment temporal
 deploy.sh
 deploy_wsl.sh
 call_router.sh
@@ -59,6 +73,9 @@ call_router.sh
 # Temporary patch files
 .patch_tmp
 *.patch_tmp
+
+# Translation and internal summary files (solo para workflow interno)
+TRANSLATION_SUMMARY.md
 
 # .env.example should be kept for reference
 !.env.example
