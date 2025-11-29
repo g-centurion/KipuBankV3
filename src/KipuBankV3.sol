@@ -6,6 +6,9 @@ pragma solidity 0.8.30;
  * @author G-Centurion
  * @notice Educational DeFi bank with ETH/ERC-20 deposits, automatic swap to USDC and limited withdrawals.
  * @dev Integrates Uniswap V2 for swaps and Chainlink for ETH/USD price. Applies CEI, ReentrancyGuard, RBAC and oracle validations.
+ * @dev Este contrato implementa seguridad multi-capa: límites de retiro, caps globales, validación de oracles y roles de acceso.
+ * @custom:security Para reportar vulnerabilidades contactar a: security@kipubank.example (educacional)
+ * @custom:experimental Este es un contrato educativo desarrollado en el marco del curso EthKipu - Talento Tech.
  */
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
@@ -109,40 +112,59 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     /// @notice Counter of successful withdrawals.
     uint256 private _withdrawalCount;
 
-    // ========= Modifiers =========
-    /// @notice Ensures an amount greater than zero.
-    /// @param amount_ The amount provided by caller.
+    /*//////////////////////////////////////////////////
+                        MODIFIERS
+    //////////////////////////////////////////////////*/
+
+    /**
+     * @notice Ensures an amount greater than zero.
+     * @dev Revierte con Bank__ZeroAmount si el monto es cero, previniendo operaciones vacías.
+     * @param amount_ The amount provided by caller that must be > 0.
+     */
     modifier nonZero(uint256 amount_) {
         if (amount_ == 0) revert Bank__ZeroAmount();
         _;
     }
-    /// @notice Ensures token is ETH or USDC for withdrawals.
-    /// @param token_ Token address requested for withdrawal.
+    /**
+     * @notice Ensures token is ETH or USDC for withdrawals.
+     * @dev Solo permite retiros de ETH (address(0)) o USDC. Revierte Bank__TokenNotSupported para otros tokens.
+     * @param token_ Token address requested for withdrawal.
+     */
     modifier supportedWithdrawToken(address token_) {
         if (token_ != ETH_TOKEN && token_ != USDC_TOKEN) revert Bank__TokenNotSupported();
         _;
     }
-    /// @notice Ensures withdrawal does not exceed per-transaction limit.
-    /// @param amount_ Requested withdrawal amount.
+    /**
+     * @notice Ensures withdrawal does not exceed per-transaction limit.
+     * @dev Valida que el monto solicitado no exceda MAX_WITHDRAWAL_PER_TX para prevenir drenajes masivos.
+     * @param amount_ Requested withdrawal amount that must be <= MAX_WITHDRAWAL_PER_TX.
+     */
     modifier withinWithdrawLimit(uint256 amount_) {
         if (amount_ > MAX_WITHDRAWAL_PER_TX) revert Bank__WithdrawalExceedsLimit(MAX_WITHDRAWAL_PER_TX, amount_);
         _;
     }
-    /// @notice Ensures token is allowed for deposit and not ETH/USDC.
-    /// @param token_ ERC-20 token being deposited.
+    /**
+     * @notice Ensures token is allowed for deposit and not ETH/USDC.
+     * @dev Valida que el token esté registrado en sTokenCatalog y sea distinto de ETH/USDC (que tienen flujos dedicados).
+     * @param token_ ERC-20 token being deposited, must be in catalog and isAllowed=true.
+     */
     modifier allowedDepositToken(address token_) {
         if (token_ == ETH_TOKEN || token_ == USDC_TOKEN) revert Bank__InvalidTokenAddress();
         if (!sTokenCatalog[token_].isAllowed) revert Bank__TokenNotSupported();
         _;
     }
 
-    // ========= Constructor =========
+    /*//////////////////////////////////////////////////
+                       CONSTRUCTOR
+    //////////////////////////////////////////////////*/
+
     /**
-     * @notice Initializes core configuration.
-     * @param ethPriceFeedAddress_ Address of the ETH/USD Chainlink oracle.
-     * @param maxWithdrawalAmount_ Maximum amount a user can withdraw per transaction.
-     * @param routerAddress_ Address of the UniswapV2Router02.
-     * @param usdcAddress_ Address of the USDC token.
+     * @notice Initializes core configuration and grants all roles to deployer.
+     * @dev Registra USDC y ETH en el catálogo de tokens, configura inmutables y otorga roles administrativos.
+     * @param ethPriceFeedAddress_ Address of the ETH/USD Chainlink oracle (must not be address(0)).
+     * @param maxWithdrawalAmount_ Maximum amount a user can withdraw per transaction (immutable).
+     * @param routerAddress_ Address of the UniswapV2Router02 for token swaps (must not be address(0)).
+     * @param usdcAddress_ Address of the USDC token, main reserve asset (must not be address(0)).
      */
     constructor(address ethPriceFeedAddress_, uint256 maxWithdrawalAmount_, address routerAddress_, address usdcAddress_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -161,37 +183,51 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         sTokenCatalog[ETH_TOKEN] = TokenData({priceFeedAddress: ethPriceFeedAddress_, tokenDecimals: 18, isAllowed: true});
     }
 
-    // ========= Admin Functions =========
-    /// @notice Pauses the contract (emergency). Only `PAUSE_MANAGER_ROLE`.
+    /*//////////////////////////////////////////////////
+                    EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////*/
+
+    /**
+     * @notice Pauses the contract (emergency).
+     * @dev Only accounts with PAUSE_MANAGER_ROLE can invoke. Detiene depósitos, retiros y swaps.
+     */
     function pause() external onlyRole(PAUSE_MANAGER_ROLE) { _pause(); }
-    /// @notice Unpauses the contract. Only `PAUSE_MANAGER_ROLE`.
+
+    /**
+     * @notice Unpauses the contract.
+     * @dev Only accounts with PAUSE_MANAGER_ROLE can invoke. Restablece operaciones normales.
+     */
     function unpause() external onlyRole(PAUSE_MANAGER_ROLE) { _unpause(); }
-    /// @notice Updates the ETH/USD oracle address. Only `CAP_MANAGER_ROLE`.
-    /// @param newAddress The new Chainlink ETH/USD feed address.
+    /**
+     * @notice Updates the ETH/USD oracle address.
+     * @dev Only accounts with CAP_MANAGER_ROLE can invoke. No valida si es un feed válido, debe usarse con precaución.
+     * @param newAddress The new Chainlink ETH/USD feed address.
+     */
     function setEthPriceFeedAddress(address newAddress) external onlyRole(CAP_MANAGER_ROLE) {
         sEthPriceFeed = AggregatorV3Interface(newAddress);
     }
 
     /**
      * @notice Adds or updates a supported token in the bank's token catalog.
-     * @dev Restricted to accounts with TOKEN_MANAGER_ROLE.
-     * @param token Address of the token to register.
-     * @param priceFeed Address of the Chainlink price feed for the token.
-     * @param decimals Token decimals.
+     * @dev Restricted to accounts with TOKEN_MANAGER_ROLE. Marca token como permitido para depósito/swap.
+     * @param token Address of the token to register (must not be address(0)).
+     * @param priceFeed Address of the Chainlink price feed for the token (can be address(0) if not used).
+     * @param decimals Token decimals (typically 6, 8 or 18).
      */
     function addOrUpdateToken(address token, address priceFeed, uint8 decimals) external onlyRole(TOKEN_MANAGER_ROLE) {
         if (token == address(0)) revert Bank__InvalidTokenAddress();
         sTokenCatalog[token] = TokenData({priceFeedAddress: priceFeed, tokenDecimals: decimals, isAllowed: true});
     }
 
-    // ========= Deposit Functions =========
     /**
      * @notice Deposits ERC-20 token and automatically swaps it to USDC via Uniswap V2.
-     * @dev Follows CEI pattern. Checks bank cap before transferring tokens.
-     * @param tokenIn Address of the ERC-20 token to deposit.
-     * @param amountIn Amount of tokenIn to deposit.
-     * @param amountOutMin Minimum amount of USDC expected (slippage protection).
-     * @param deadline Unix timestamp deadline for the swap.
+     * @dev Follows CEI pattern. Valida cap global, transfiere tokens del usuario, aprueba router y ejecuta swap.
+     * @dev Ruta de swap: tokenIn → WETH → USDC (o directo WETH → USDC si tokenIn es WETH).
+     * @dev Emite DepositSuccessful con el monto final de USDC recibido.
+     * @param tokenIn Address of the ERC-20 token to deposit (must be in catalog and allowed).
+     * @param amountIn Amount of tokenIn to deposit (must be > 0).
+     * @param amountOutMin Minimum amount of USDC expected to protect against slippage (6 decimals).
+     * @param deadline Unix timestamp deadline for the swap (must be >= block.timestamp).
      */
     function depositAndSwapERC20(address tokenIn, uint256 amountIn, uint256 amountOutMin, uint48 deadline)
         external
@@ -222,7 +258,9 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Deposits ETH to the bank.
-     * @dev Follows CEI pattern. Checks bank cap using balance before msg.value is added.
+     * @dev Follows CEI pattern. Obtiene precio ETH/USD de Chainlink, valida cap global (restando msg.value del balance).
+     * @dev Actualiza lastRecordedPrice para validación de desviación en futuros depósitos.
+     * @dev Emite DepositSuccessful con el monto depositado en Wei.
      */
     function deposit() external payable whenNotPaused nonReentrant nonZero(msg.value) {
         uint256 ethPriceUsd = _getEthPriceInUsd();
@@ -235,9 +273,11 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Withdraws ETH or USDC from the bank.
-     * @dev Follows CEI pattern. Uses low-level call for ETH and SafeERC20 for tokens.
-     * @param tokenAddress Address of the token (address(0) for ETH).
-     * @param amountToWithdraw Amount to withdraw.
+     * @dev Follows CEI pattern. Valida balance, actualiza estado, luego transfiere (Pull over Push para ETH).
+     * @dev Usa low-level call para ETH y SafeERC20 para tokens ERC-20.
+     * @dev Emite WithdrawalSuccessful tras transferencia exitosa.
+     * @param tokenAddress Address of the token to withdraw (address(0) for ETH, USDC address for USDC).
+     * @param amountToWithdraw Amount to withdraw (must be > 0 and <= MAX_WITHDRAWAL_PER_TX and <= user balance).
      */
     function withdrawToken(address tokenAddress, uint256 amountToWithdraw)
         external
@@ -258,11 +298,17 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         emit WithdrawalSuccessful(msg.sender, tokenAddress, amountToWithdraw);
     }
 
-    // ========= Internal Helpers =========
-    /// @dev Calculates total bank value in USD including pending deposit.
-    /// @param pendingUsdValue Pending deposit value in USD (8 decimals).
-    /// @param ethPriceUsd ETH price in USD (8 decimals).
-    /// @return Total USD value including pending deposit.
+    /*//////////////////////////////////////////////////
+                   INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////*/
+
+    /**
+     * @dev Calculates total bank value in USD including pending deposit.
+     * @dev Suma el valor USD de ETH en balance + USDC en balance + depósito pendiente.
+     * @param pendingUsdValue Pending deposit value in USD (8 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals) obtenido del oracle.
+     * @return Total USD value of the bank including pending deposit (8 decimals).
+     */
     function _getBankTotalUsdValue(uint256 pendingUsdValue, uint256 ethPriceUsd) private view returns (uint256) {
         uint256 ethBalance = address(this).balance;
         uint256 currentEthUsdValue = _getUsdValueFromWei(ethBalance, ethPriceUsd);
@@ -271,9 +317,12 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         return currentEthUsdValue + currentUsdcUsdValue + pendingUsdValue;
     }
 
-    /// @dev Checks if adding pending deposit would exceed bank cap.
-    /// @param pendingUsdValue Pending deposit value in USD (8 decimals).
-    /// @param ethPriceUsd ETH price in USD (8 decimals).
+    /**
+     * @dev Checks if adding pending deposit would exceed bank cap.
+     * @dev Revierte Bank__DepositExceedsCap si el total proyectado supera BANK_CAP_USD (1M USD).
+     * @param pendingUsdValue Pending deposit value in USD (8 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals) para calcular valor actual del banco.
+     */
     function _checkBankCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
         uint256 currentUsdBalance = _getBankTotalUsdValue(0, ethPriceUsd);
         unchecked {
@@ -282,9 +331,12 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         }
     }
 
-    /// @dev Checks ETH deposit cap accounting for msg.value already in balance.
-    /// @param pendingUsdValue Pending ETH deposit value in USD (8 decimals).
-    /// @param ethPriceUsd ETH price in USD (8 decimals).
+    /**
+     * @dev Checks ETH deposit cap accounting for msg.value already in balance.
+     * @dev Resta msg.value del balance ETH actual para evitar contarlo dos veces, luego valida cap.
+     * @param pendingUsdValue Pending ETH deposit value in USD (8 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals) obtenido del oracle.
+     */
     function _checkEthDepositCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
         uint256 preEthBalance = address(this).balance - msg.value;
         uint256 preEthUsd = _getUsdValueFromWei(preEthBalance, ethPriceUsd);
@@ -296,8 +348,12 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         }
     }
 
-    /// @dev Retrieves latest ETH/USD price from Chainlink oracle with validation (single SLOAD of lastRecordedPrice).
-    /// @return ethPriceUsd ETH price in USD (8 decimals).
+    /**
+     * @dev Retrieves latest ETH/USD price from Chainlink oracle with validation.
+     * @dev Valida: precio > 0, no stale (< 3h), desviación < 5% vs lastRecordedPrice.
+     * @dev Usa única lectura de storage (SLOAD) de lastRecordedPrice para eficiencia de gas.
+     * @return ethPriceUsd ETH price in USD (8 decimals).
+     */
     function _getEthPriceInUsd() internal view returns (uint256 ethPriceUsd) {
         (, int256 price,, uint256 updatedAt,) = sEthPriceFeed.latestRoundData();
         if (price <= 0) revert Bank__TransferFailed();
@@ -313,30 +369,56 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         return uintPrice;
     }
 
-    /// @dev Updates last recorded price for deviation checking.
-    /// @param newPrice Latest accepted ETH/USD price (8 decimals).
+    /**
+     * @dev Updates last recorded price for deviation checking.
+     * @dev Llamado tras validar precio exitosamente en deposit() para futuras comparaciones.
+     * @param newPrice Latest accepted ETH/USD price (8 decimals) obtenido de Chainlink.
+     */
     function _updateRecordedPrice(int256 newPrice) internal { lastRecordedPrice = newPrice; }
 
-    /// @dev Converts ETH amount to USD value.
-    /// @param ethAmount Amount in Wei (18 decimals).
-    /// @param ethPriceUsd ETH price in USD (8 decimals).
-    /// @return usdValue USD value (8 decimals).
+    /**
+     * @dev Converts ETH amount to USD value.
+     * @dev Fórmula: (ethAmount * ethPriceUsd) / 10^18 para escalar de 18 decimales (Wei) a 8 decimales (USD).
+     * @param ethAmount Amount in Wei (18 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals) del oracle.
+     * @return usdValue USD value (8 decimals).
+     */
     function _getUsdValueFromWei(uint256 ethAmount, uint256 ethPriceUsd) private pure returns (uint256 usdValue) {
         return (ethAmount * ethPriceUsd) / 10 ** 18;
     }
 
-    /// @dev Converts USDC amount to USD value.
-    /// @param usdcAmount Amount of USDC (6 decimals).
-    /// @return usdValue USD value (8 decimals).
+    /**
+     * @dev Converts USDC amount to USD value.
+     * @dev Escala de 6 decimales (USDC) a 8 decimales (USD) multiplicando por 10^2.
+     * @param usdcAmount Amount of USDC (6 decimals).
+     * @return usdValue USD value (8 decimals).
+     */
     function _getUsdValueFromUsdc(uint256 usdcAmount) private pure returns (uint256 usdValue) {
         return usdcAmount * 10 ** 2; // scale 6 -> 8 decimals
     }
 
-    // ========= View Functions =========
-    /// @notice Returns number of successful deposits.
+    /*//////////////////////////////////////////////////
+                     VIEW FUNCTIONS
+    //////////////////////////////////////////////////*/
+
+    /**
+     * @notice Returns number of successful deposits.
+     * @dev Contador incrementado en deposit() y depositAndSwapERC20().
+     * @return Total count of successful deposit operations.
+     */
     function getDepositCount() external view returns (uint256) { return _depositCount; }
-    /// @notice Returns number of successful withdrawals.
+
+    /**
+     * @notice Returns number of successful withdrawals.
+     * @dev Contador incrementado en withdrawToken().
+     * @return Total count of successful withdrawal operations.
+     */
     function getWithdrawalCount() external view returns (uint256) { return _withdrawalCount; }
-    /// @notice Returns WETH address used for routing.
+
+    /**
+     * @notice Returns WETH address used for routing.
+     * @dev Obtenido del router en el constructor y usado en rutas de swap.
+     * @return WETH token address (immutable).
+     */
     function getWethAddress() external view returns (address) { return WETH_TOKEN; }
 }
