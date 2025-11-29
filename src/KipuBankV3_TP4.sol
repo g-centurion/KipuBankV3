@@ -16,11 +16,18 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
-/// @dev Thrown when the deposited amount exceeds the remaining capacity of the bank in USD.
+/// @dev Thrown when the deposited amount would exceed the global USD cap.
+/// @param currentBalanceUsd Bank USD value before the attempted deposit.
+/// @param bankCapUsd The configured global cap in USD (8 decimals).
+/// @param attemptedDepositUsd USD value (8 decimals) of the pending deposit.
 error Bank__DepositExceedsCap(uint256 currentBalanceUsd, uint256 bankCapUsd, uint256 attemptedDepositUsd);
 /// @dev Thrown when the requested withdrawal amount exceeds the per-transaction limit.
+/// @param limit The maximum allowed withdrawal per transaction.
+/// @param requested The amount the user attempted to withdraw.
 error Bank__WithdrawalExceedsLimit(uint256 limit, uint256 requested);
 /// @dev Thrown when the user attempts to withdraw more than their available balance.
+/// @param available The user's current balance.
+/// @param requested The amount the user attempted to withdraw.
 error Bank__InsufficientBalance(uint256 available, uint256 requested);
 /// @dev Thrown when a transfer (ETH or ERC-20) fails.
 error Bank__TransferFailed();
@@ -32,9 +39,13 @@ error Bank__ZeroAmount();
 error Bank__TokenNotSupported();
 /// @dev Thrown if the price obtained after the swap is less than the minimum expected amount.
 error Bank__SlippageTooHigh();
-/// @dev Thrown if the price obtained from Chainlink is stale (timestamp too old).
+/// @dev Thrown if the price obtained from Chainlink is stale.
+/// @param updateTime Timestamp returned by the oracle for the last price update.
+/// @param currentTime `block.timestamp` at validation time.
 error Bank__StalePrice(uint256 updateTime, uint256 currentTime);
-/// @dev Thrown if the price deviated too much from expected bounds (circuit breaker).
+/// @dev Thrown if the price deviates more than MAX_PRICE_DEVIATION_BPS from the last recorded price.
+/// @param currentPrice The newly fetched price.
+/// @param previousPrice The previously recorded price.
 error Bank__PriceDeviation(int256 currentPrice, int256 previousPrice);
 
 
@@ -64,8 +75,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     /// @notice Global deposit cap for the bank in USD (8 decimals).
     uint256 public constant BANK_CAP_USD = 1_000_000 * 10 ** 8;
 
-    /// @notice Maximum time allowed to consider oracle price valid.
-    uint256 public constant PRICE_FEED_TIMEOUT = 1 hours;
+    /// @notice Maximum time allowed to consider oracle price valid (3 hours for robustness).
+    uint256 public constant PRICE_FEED_TIMEOUT = 3 hours;
 
     /// @notice Maximum allowed price deviation (5%).
     uint256 public constant MAX_PRICE_DEVIATION_BPS = 500;
@@ -322,10 +333,14 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * @param ethPriceUsd ETH price in USD (8 decimals).
      */
     function _checkBankCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
-        uint256 totalUsdValueIfAccepted = _getBankTotalUsdValue(pendingUsdValue, ethPriceUsd);
-        if (totalUsdValueIfAccepted > BANK_CAP_USD) {
-            uint256 currentUsdBalance = _getBankTotalUsdValue(0, ethPriceUsd);
-            revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingUsdValue);
+        // Capture current USD value before considering the pending deposit (atomic snapshot).
+        uint256 currentUsdBalance = _getBankTotalUsdValue(0, ethPriceUsd);
+        unchecked {
+            // Compute projected total. Using unchecked saves minimal gas; overflow unrealistic with chosen cap.
+            uint256 projectedTotal = currentUsdBalance + pendingUsdValue;
+            if (projectedTotal > BANK_CAP_USD) {
+                revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingUsdValue);
+            }
         }
     }
 
@@ -335,14 +350,16 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
      * @param ethPriceUsd ETH price in USD (8 decimals).
      */
     function _checkEthDepositCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
+        // Adjust ETH balance to exclude msg.value (which is already in address(this).balance at runtime).
         uint256 preEthBalance = address(this).balance - msg.value;
         uint256 preEthUsd = _getUsdValueFromWei(preEthBalance, ethPriceUsd);
-        uint256 usdcBalance = IERC20(USDC_TOKEN).balanceOf(address(this));
-        uint256 preUsdcUsd = _getUsdValueFromUsdc(usdcBalance);
-        uint256 totalIfAccepted = preEthUsd + preUsdcUsd + pendingUsdValue;
-        if (totalIfAccepted > BANK_CAP_USD) {
-            uint256 currentUsdBalance = preEthUsd + preUsdcUsd;
-            revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingUsdValue);
+        uint256 preUsdcUsd = _getUsdValueFromUsdc(IERC20(USDC_TOKEN).balanceOf(address(this)));
+        uint256 currentUsdBalance = preEthUsd + preUsdcUsd;
+        unchecked {
+            uint256 projectedTotal = currentUsdBalance + pendingUsdValue;
+            if (projectedTotal > BANK_CAP_USD) {
+                revert Bank__DepositExceedsCap(currentUsdBalance, BANK_CAP_USD, pendingUsdValue);
+            }
         }
     }
 
