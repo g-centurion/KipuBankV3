@@ -84,7 +84,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     // ROLES & CONSTANTES
     // =========================================================================
 
-
     /// @notice Role authorized to manage bank caps and oracles.
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
     /// @notice Role authorized to pause/unpause contract operations.
@@ -103,7 +102,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /// @notice Maximum withdrawal amount per transaction.
     uint256 public immutable MAX_WITHDRAWAL_PER_TX;
-    
+
     /// @notice Identifier for native ETH (address(0)).
     address private constant ETH_TOKEN = address(0);
 
@@ -205,15 +204,10 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         USDC_TOKEN = usdcAddress_;
         WETH_TOKEN = I_ROUTER.WETH();
 
-        sTokenCatalog[USDC_TOKEN] = TokenData({
-            priceFeedAddress: address(0),
-            tokenDecimals: 6,
-            isAllowed: true
-        });
+        sTokenCatalog[USDC_TOKEN] = TokenData({priceFeedAddress: address(0), tokenDecimals: 6, isAllowed: true});
         sTokenCatalog[ETH_TOKEN] =
             TokenData({priceFeedAddress: ethPriceFeedAddress_, tokenDecimals: 18, isAllowed: true});
     }
-
 
     // =========================================================================
     // ADMIN FUNCTIONS
@@ -286,13 +280,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).safeIncreaseAllowance(address(I_ROUTER), amountIn);
 
-        uint256[] memory actualAmounts = I_ROUTER.swapExactTokensForTokens(
-            amountIn,
-            amountOutMin,
-            path,
-            address(this),
-            deadline
-        );
+        uint256[] memory actualAmounts =
+            I_ROUTER.swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
 
         uint256 usdcReceived = actualAmounts[actualAmounts.length - 1];
         if (usdcReceived < amountOutMin) revert Bank__SlippageTooHigh();

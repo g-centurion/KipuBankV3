@@ -209,7 +209,10 @@ contract KipuBankV3Test is Test {
         vm.prank(user);
         vm.expectRevert(
             abi.encodeWithSelector(
-                KipuBankV3.Bank__DepositExceedsCap.selector, 0, bank.BANK_CAP_USD(), hugeAmount * 2000 * 10 ** 8 / 10 ** 18
+                KipuBankV3.Bank__DepositExceedsCap.selector,
+                0,
+                bank.BANK_CAP_USD(),
+                hugeAmount * 2000 * 10 ** 8 / 10 ** 18
             )
         );
         bank.deposit{value: hugeAmount}();
