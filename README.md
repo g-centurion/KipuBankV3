@@ -1,14 +1,14 @@
  
 <div align="center">
 
-# KipuBankV3_TP4 – Banco DeFi Educativo (Swaps + Oráculos + Límites)
-<strong>Contrato desplegado en Sepolia (v2 con correcciones post auditoría)</strong>
+# KipuBankV3 – Banco DeFi Educativo (Swaps + Oráculos + Límites)
+<strong>Contrato desplegado en Sepolia (Versión actualizada - Noviembre 2025)</strong>
 
 <p>
-<strong>Dirección del contrato:</strong> <code>0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1</code><br/>
-<strong>Transacción de deploy:</strong> <code>0x0094c3f6c2b573c4d8f94af4fb6d26c5a379eb36637453132c30125075820bb0</code><br/>
-<a href="https://sepolia.etherscan.io/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1">Blockscout</a>
+<strong>Dirección del contrato:</strong> <code>0x0197FB5AcCc60e573C627B7F0779290e200Ed445</code><br/>
+<strong>Transacción de deploy:</strong> <code>0x55e527d4a833df35b15ecc88f59f34fc750845d7c8b4a32309f501c3bcbaa4cb</code><br/>
+<a href="https://sepolia.etherscan.io/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445">Blockscout</a>
 </p>
 
 </div>
@@ -138,7 +138,7 @@ Nuevas características V3:
 <details open>
 <summary><h2>Interacción On‑Chain (ejemplos cast)</h2></summary>
 
-Ejemplos rápidos con `cast`. Sustituir `[ADDR]` por `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1`.
+Ejemplos rápidos con `cast`. Sustituir `[ADDR]` por `0x0197FB5AcCc60e573C627B7F0779290e200Ed445`.
 
 - Contador de depósitos:
    - `cast call [ADDR] "getDepositCount()(uint256)" --rpc-url $RPC_URL_SEPOLIA`
@@ -418,7 +418,7 @@ Ver [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md) para integración en aplicaciones web
 <summary><h2>Interacción On-Chain (cast)</h2></summary>
 
 ```bash
-CONTRACT_ADDRESS=0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1
+CONTRACT_ADDRESS=0x0197FB5AcCc60e573C627B7F0779290e200Ed445
 
 # Lectura: Límite de retiro por transacción
 cast call $CONTRACT_ADDRESS "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
@@ -543,7 +543,7 @@ Banco DeFi educativo con depósitos de ETH y ERC‑20, swap automático a USDC, 
 - Herencia: AccessControl, Pausable, ReentrancyGuard.
 - Librerías: SafeERC20.
 - Integraciones: Uniswap V2 Router, Chainlink ETH/USD.
-- Red: Sepolia | Dirección: `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1`.
+- Red: Sepolia | Dirección: `0x0197FB5AcCc60e573C627B7F0779290e200Ed445`.
 
 ### Interfaz Pública
 | Función | Rol | Descripción |
@@ -611,7 +611,7 @@ forge build
 forge inspect src/KipuBankV3.sol:KipuBankV3 deployedBytecode > local_deployed_bytecode.txt
 
 # 2. Obtener runtime on-chain
-cast code 0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1 --rpc-url $RPC_URL_SEPOLIA > onchain_deployed_bytecode.txt
+cast code 0x0197FB5AcCc60e573C627B7F0779290e200Ed445 --rpc-url $RPC_URL_SEPOLIA > onchain_deployed_bytecode.txt
 
 # 3. Diff (las diferencias esperadas son direcciones y valores de immutables)
 diff -u local_deployed_bytecode.txt onchain_deployed_bytecode.txt || echo "Diferencias esperadas (immutables)"
@@ -671,7 +671,7 @@ Futuro sugerido: multisig + timelock productivo, TWAP/multi-oráculo, agregador 
 - Fix crítico: atomicidad en `_checkBankCap` y `_checkEthDepositCap` (snapshot previo + proyección segura).
 - NatSpec completo en errores (`@param` documentado).
 - Timeout oráculo: 1h → 3h para mayor resiliencia ante retrasos.
-- Redespliegue: dirección nueva `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1` verificada.
+- Redespliegue: dirección nueva `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` verificada.
 - Documentación actualizada (README, AUDITOR_GUIDE, THREAT_MODEL) y Changelog.
 
 ### Versión 1 (12 Nov 2025) – Release Inicial

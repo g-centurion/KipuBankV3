@@ -2,7 +2,7 @@
 
 ## Estado General: TODO OK ✅
 
-**Contrato**: `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1` (v2)  
+**Contrato**: `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` (v2)  
 **Fecha**: 29 Nov 2025  
 **Commit**: `c814732`
 

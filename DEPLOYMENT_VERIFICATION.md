@@ -10,10 +10,10 @@
 
 | Parámetro | Valor |
 |-----------|-------|
-| **Dirección del contrato** | `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1` |
-| **Transacción de deploy** | `0x0094c3f6c2b573c4d8f94af4fb6d26c5a379eb36637453132c30125075820bb0` |
-| **Etherscan** | https://sepolia.etherscan.io/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1#code |
-| **Blockscout** | https://eth-sepolia.blockscout.com/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1 |
+| **Dirección del contrato** | `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` |
+| **Transacción de deploy** | `0x55e527d4a833df35b15ecc88f59f34fc750845d7c8b4a32309f501c3bcbaa4cb` |
+| **Etherscan** | https://sepolia.etherscan.io/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445#code |
+| **Blockscout** | https://eth-sepolia.blockscout.com/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445 |
 | **Verificación en exploradores** | ✅ Código fuente verificado en ambos |
 
 ---
@@ -145,7 +145,7 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 ✅ **Todas las verificaciones pasaron exitosamente**
 
-El contrato desplegado en `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1` coincide con el código fuente del repositorio, todos los parámetros están configurados correctamente según especificaciones, los tests pasan al 100%, y la documentación está actualizada y sincronizada con el deployment.
+El contrato desplegado en `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` coincide con el código fuente del repositorio, todos los parámetros están configurados correctamente según especificaciones, los tests pasan al 100%, y la documentación está actualizada y sincronizada con el deployment.
 
 **Estado**: Listo para uso educativo en Sepolia.
 
