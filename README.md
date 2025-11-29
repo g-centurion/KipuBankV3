@@ -468,34 +468,36 @@ Ver documentos completos: [THREAT_MODEL.md](THREAT_MODEL.md) y [AUDITOR_GUIDE.md
 | Métrica | Valor |
 |--------|-------|
 | Tests passing | 43 / 43 |
-| Cobertura global (líneas) | 66.5% |
-| Cobertura global (funciones) | 67.5% |
-| `KipuBankV3_TP4.sol` (líneas) | 89.38% (101/113) |
-| `KipuBankV3_TP4.sol` (funciones) | 88.24% (15/17) |
+| Cobertura global (líneas) | 67.3% (152/226) |
+| Cobertura global (funciones) | 71.1% (32/45) |
+| Cobertura global (branches) | 67.7% (21/31) |
+| `KipuBankV3_TP4.sol` (líneas) | 90.4% (104/115) |
+| `KipuBankV3_TP4.sol` (funciones) | 90.9% (20/22) |
+| `KipuBankV3_TP4.sol` (branches) | 65.0% (13/20) |
 
 ```mermaid
 pie
    title Cobertura Global (líneas)
-   "Cubierto" : 66.5
-   "No cubierto" : 33.5
+   "Cubierto" : 67.3
+   "No cubierto" : 32.7
 ```
 
 ```mermaid
 pie
    title Cobertura KipuBankV3_TP4.sol (líneas)
-   "Cubierto" : 89.38
-   "No cubierto" : 10.62
+   "Cubierto" : 90.4
+   "No cubierto" : 9.6
 ```
 
 #### Cobertura por archivo (líneas)
 
-| Archivo | Líneas | Cobertura |
-|---------|--------|-----------|
-| `src/KipuBankV3_TP4.sol` | 101/113 | 89.38% |
-| `test/KipuBankV3Test.sol` | 48/59 | 81.36% |
-| `script/Deploy.s.sol` | 0/26 | 0% (no ejecutado en tests) |
-| `script/Interact.s.sol` | 0/20 | 0% (no ejecutado en tests) |
-| `src/TimelockKipuBank.sol` | 0/6 | 0% (sin tests específicos) |
+| Archivo | Líneas | Funciones | Branches | Cobertura Líneas |
+|---------|--------|-----------|----------|------------------|
+| `src/KipuBankV3_TP4.sol` | 104/115 | 20/22 | 13/20 | 90.4% |
+| `test/KipuBankV3Test.sol` | 48/59 | 12/17 | 8/11 | 81.4% |
+| `script/Deploy.s.sol` | 0/26 | 0/3 | — | 0% (no ejecutado en tests) |
+| `script/Interact.s.sol` | 0/20 | 0/1 | — | 0% (no ejecutado en tests) |
+| `src/TimelockKipuBank.sol` | 0/6 | 0/2 | — | 0% (sin tests específicos) |
 
 ### Áreas cubiertas por los tests
 - Depósito de ETH y validación de cap y precio.
@@ -505,12 +507,19 @@ pie
 - Fuzzing de montos y secuencias de operaciones.
 - Emisión de eventos y contadores (`getDepositCount`).
 
-### Generar reporte HTML de cobertura (opcional, local)
+### Generar reporte HTML de cobertura
 ```bash
+# Generar archivo lcov.info
 forge coverage --report lcov
-sudo apt-get install -y lcov
-genhtml -o coverage-html lcov.info
+
+# Generar HTML navegable (requiere lcov instalado)
+genhtml lcov.info --branch-coverage --output-directory coverage
+
+# Abrir reporte (WSL)
+# Navegar a: \\wsl.localhost\Ubuntu\home\sonic\KipuBankV3_TP4\coverage\index.html
 ```
+
+**Nota**: El reporte HTML muestra cobertura detallada línea por línea, destacando código ejecutado y no ejecutado, con estadísticas de branches y funciones.
 
 ...</details>
 
