@@ -418,7 +418,7 @@ Ver [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md) para integración en aplicaciones web
 <summary><h2>Interacción On-Chain (cast)</h2></summary>
 
 ```bash
-CONTRACT_ADDRESS=0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9
+CONTRACT_ADDRESS=0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691
 
 # Lectura: Límite de retiro por transacción
 cast call $CONTRACT_ADDRESS "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
@@ -611,7 +611,7 @@ forge build
 forge inspect src/KipuBankV3.sol:KipuBankV3 deployedBytecode > local_deployed_bytecode.txt
 
 # 2. Obtener runtime on-chain
-cast code 0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9 --rpc-url $RPC_URL_SEPOLIA > onchain_deployed_bytecode.txt
+cast code 0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691 --rpc-url $RPC_URL_SEPOLIA > onchain_deployed_bytecode.txt
 
 # 3. Diff (las diferencias esperadas son direcciones y valores de immutables)
 diff -u local_deployed_bytecode.txt onchain_deployed_bytecode.txt || echo "Diferencias esperadas (immutables)"

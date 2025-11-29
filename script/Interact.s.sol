@@ -12,7 +12,7 @@ import {KipuBankV3} from "../src/KipuBankV3.sol";
  */
 contract InteractScript is Script {
     // Deployed contract address on Sepolia (update if it changes)
-    address constant KIPU_BANK_ADDRESS = 0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9;
+    address constant KIPU_BANK_ADDRESS = 0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691;
 
     // USDC address on Sepolia used by the contract (for internal balance reads)
     address constant USDC_ADDRESS = 0x1c7d4B196CB0c6b364c3d6eB8F0708a9dA00375D; // Corrected: No invalid characters
