@@ -7,53 +7,53 @@ import {KipuBankV3} from "../src/KipuBankV3.sol";
 
 /**
  * @title InteractScript
- * @notice Script educativo para demostrar interacciones básicas contra el contrato desplegado.
- * @dev Ejecutar en modo dry-run para no gastar gas: forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vvvv --dry-run
+ * @notice Educational script demonstrating basic read-only interactions with the deployed contract.
+ * @dev Dry-run example (no gas spent): forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vvvv --dry-run
  */
 contract InteractScript is Script {
-    // Dirección del contrato desplegado en Sepolia (actualizar si cambia)
+    // Deployed contract address on Sepolia (update if it changes)
     address constant KIPU_BANK_ADDRESS = 0x5b7f2F853AdF9730fBA307dc2Bd2B19FF51FcDD7;
 
-    // Dirección USDC Sepolia usada dentro del contrato (para lecturas de balance)
+    // USDC address on Sepolia used by the contract (for internal balance reads)
     address constant USDC_ADDRESS = 0x1c7d4B196CB0c6b364c3d6eB8F0708a9dA00375D; // Corrected: No invalid characters
 
     function run() external {
-        // Obtiene clave privada desde entorno (formato uint con prefijo 0x en .env)
+        // Load private key from environment (.env, uint with 0x prefix)
         uint256 pk = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(pk);
         vm.startBroadcast(pk);
 
         KipuBankV3 bank = KipuBankV3(KIPU_BANK_ADDRESS);
 
-        // Lecturas iniciales
-        console.log("==== INTERACCION EDUCATIVA ====");
-        console.log("Contrato:", address(bank));
-        console.log("Deployer/Usuario:", deployer);
+        // Initial reads
+        console.log("==== EDUCATIONAL INTERACTION ====");
+        console.log("Contract:", address(bank));
+        console.log("Deployer/User:", deployer);
         console.log("Max Withdrawal Per TX:", bank.MAX_WITHDRAWAL_PER_TX());
         console.log("Router:", address(bank.I_ROUTER()));
         console.log("WETH:", bank.getWethAddress());
 
-        // NOTA: No hacemos llamadas de escritura reales aquí para evitar afectar estado.
-        // Ejemplo de cómo se haría un depósito de ETH (DESCOMENTAR SOLO SI SE DESEA EJECUTAR REAL):
+        // NOTE: No state-changing calls here to avoid altering on-chain state.
+        // Example of how an ETH deposit would look (UNCOMMENT ONLY TO EXECUTE FOR REAL):
         // bank.deposit{ value: 0.01 ether }();
-        // console.log("Depósito ETH simulado completado");
+        // console.log("Simulated ETH deposit completed");
 
-        // Ejemplo conceptual de lectura de balance interno (ETH = address(0))
+        // Conceptual example of internal balance reads (ETH = address(0))
         uint256 ethBalance = bank.balances(deployer, address(0));
         uint256 usdcBalance = bank.balances(deployer, USDC_ADDRESS);
-        console.log("Balance interno ETH (wei):", ethBalance);
-        console.log("Balance interno USDC (6d):", usdcBalance);
+        console.log("Internal ETH balance (wei):", ethBalance);
+        console.log("Internal USDC balance (6d):", usdcBalance);
 
-        // Verificación de rol admin
+        // Admin role verification
         bytes32 DEFAULT_ADMIN_ROLE = 0x0000000000000000000000000000000000000000000000000000000000000000;
         bool isAdmin = bank.hasRole(DEFAULT_ADMIN_ROLE, deployer);
         console.log("Is Admin Role:", isAdmin);
 
-        // Ejemplo conceptual de retiro (NO ejecutar en modo educativo):
+        // Conceptual example of withdrawal (DO NOT execute in educational mode):
         // bank.withdrawToken(address(0), 0.005 ether);
-        // console.log("Retiro ETH simulado");
+        // console.log("Simulated ETH withdrawal");
 
         vm.stopBroadcast();
-        console.log("==== FIN INTERACCION ====");
+        console.log("==== END INTERACTION ====");
     }
 }
