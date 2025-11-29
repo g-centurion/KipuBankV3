@@ -20,7 +20,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // =========================================================================
-    // ERRORES (MOVIDOS DENTRO DEL CONTRATO - REQUISITO OBLIGATORIO)
+    // ERRORS
     // =========================================================================
 
     /// @dev Thrown when the deposited amount would exceed the global USD cap.
@@ -65,7 +65,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     error Bank__PriceDeviation(int256 currentPrice, int256 previousPrice);
 
     // =========================================================================
-    // EVENTOS (MOVIDOS DENTRO DEL CONTRATO - REQUISITO OBLIGATORIO)
+    // EVENTS
     // =========================================================================
 
     /// @dev Emitted upon a successful ETH or ERC-20 deposit or a successful swap to USDC.
@@ -81,7 +81,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     event WithdrawalSuccessful(address indexed user, address indexed token, uint256 amount);
 
     // =========================================================================
-    // ROLES & CONSTANTES
+    // ROLES & CONSTANTS
     // =========================================================================
 
     /// @notice Role authorized to manage bank caps and oracles.
@@ -412,7 +412,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
         uintPrice = uint256(price);
 
-        int256 lr = lastRecordedPrice; // Optimización Storage: se lee una sola vez
+        int256 lr = lastRecordedPrice; // Storage optimization: read once
 
         if (lr > 0) {
             int256 priceDiff = price - lr;
