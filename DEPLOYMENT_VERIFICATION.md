@@ -1,7 +1,7 @@
-# Reporte de Verificación de Despliegue KipuBankV3 v2
+# Reporte de Verificación de Despliegue KipuBankV3 v3
 
 **Fecha de verificación**: 29 de noviembre de 2025  
-**Versión del contrato**: v2 (con correcciones post auditoría)  
+**Versión del contrato**: v3 (con NatSpec completo)  
 **Red**: Sepolia Testnet
 
 ---
@@ -10,10 +10,10 @@
 
 | Parámetro | Valor |
 |-----------|-------|
-| **Dirección del contrato** | `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` |
-| **Transacción de deploy** | `0x55e527d4a833df35b15ecc88f59f34fc750845d7c8b4a32309f501c3bcbaa4cb` |
-| **Etherscan** | https://sepolia.etherscan.io/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445#code |
-| **Blockscout** | https://eth-sepolia.blockscout.com/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445 |
+| **Dirección del contrato** | `0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691` |
+| **Transacción de deploy** | `0x9e01b146c4fdcb3ff2968efe6ccbd34ddeeabfee4007a28be88b8128676ca409` |
+| **Etherscan** | https://sepolia.etherscan.io/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691#code |
+| **Blockscout** | https://eth-sepolia.blockscout.com/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691 |
 | **Verificación en exploradores** | ✅ Código fuente verificado en ambos |
 
 ---
@@ -103,7 +103,14 @@
 
 ---
 
-## Changelog v2 (28 Nov 2025)
+## Changelog v3 (29 Nov 2025)
+
+### Cambios Principales
+1. ✅ NatSpec completo en todos los parámetros y retornos (funciones internas incluidas)
+2. ✅ Redespliegue con dirección nueva para contrato 100% documentado
+3. ✅ Verificación automática en Etherscan y Blockscout
+
+### Changelog v2 (28 Nov 2025)
 
 ### Cambios Críticos
 1. ✅ Fix atomicidad en `_checkBankCap` y `_checkEthDepositCap`
@@ -145,7 +152,7 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 ✅ **Todas las verificaciones pasaron exitosamente**
 
-El contrato desplegado en `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` coincide con el código fuente del repositorio, todos los parámetros están configurados correctamente según especificaciones, los tests pasan al 100%, y la documentación está actualizada y sincronizada con el deployment.
+El contrato desplegado en `0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691` coincide con el código fuente del repositorio, todos los parámetros están configurados correctamente según especificaciones, los tests pasan al 100%, la documentación NatSpec está completa en todas las funciones, y el código fuente está verificado en Etherscan y Blockscout.
 
 **Estado**: Listo para uso educativo en Sepolia.
 

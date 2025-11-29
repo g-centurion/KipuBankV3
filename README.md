@@ -5,10 +5,10 @@
 <strong>Contrato desplegado en Sepolia (Versión actualizada - Noviembre 2025)</strong>
 
 <p>
-<strong>Dirección del contrato:</strong> <code>0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9</code><br/>
-<strong>Transacción de deploy:</strong> <code>0xb7973aa542b192ec4c5532870ce43f27e3ae79c557fc9990bad410976d05b38f</code><br/>
-<a href="https://sepolia.etherscan.io/address/0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9">Blockscout</a>
+<strong>Dirección del contrato:</strong> <code>0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691</code><br/>
+<strong>Transacción de deploy:</strong> <code>0x9e01b146c4fdcb3ff2968efe6ccbd34ddeeabfee4007a28be88b8128676ca409</code><br/>
+<a href="https://sepolia.etherscan.io/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691">Blockscout</a>
 </p>
 
 </div>
@@ -138,7 +138,7 @@ Nuevas características V3:
 <details open>
 <summary><h2>Interacción On‑Chain (ejemplos cast)</h2></summary>
 
-Ejemplos rápidos con `cast`. Sustituir `[ADDR]` por `0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9`.
+Ejemplos rápidos con `cast`. Sustituir `[ADDR]` por `0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691`.
 
 - Contador de depósitos:
    - `cast call [ADDR] "getDepositCount()(uint256)" --rpc-url $RPC_URL_SEPOLIA`
@@ -543,7 +543,7 @@ Banco DeFi educativo con depósitos de ETH y ERC‑20, swap automático a USDC, 
 - Herencia: AccessControl, Pausable, ReentrancyGuard.
 - Librerías: SafeERC20.
 - Integraciones: Uniswap V2 Router, Chainlink ETH/USD.
-- Red: Sepolia | Dirección: `0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9`.
+- Red: Sepolia | Dirección: `0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691`.
 
 ### Interfaz Pública
 | Función | Rol | Descripción |
@@ -667,11 +667,15 @@ Futuro sugerido: multisig + timelock productivo, TWAP/multi-oráculo, agregador 
 <details open>
 <summary><h2>Changelog</h2></summary>
 
+### Versión 3 (29 Nov 2025) – NatSpec Completo
+- NatSpec completo en todos los parámetros y retornos (incluyendo funciones internas).
+- Redespliegue: dirección nueva `0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691` verificada en Etherscan y Blockscout.
+- Documentación actualizada con nueva dirección.
+
 ### Versión 2 (28 Nov 2025) – Correcciones Post Auditoría
 - Fix crítico: atomicidad en `_checkBankCap` y `_checkEthDepositCap` (snapshot previo + proyección segura).
 - NatSpec completo en errores (`@param` documentado).
 - Timeout oráculo: 1h → 3h para mayor resiliencia ante retrasos.
-- Redespliegue: dirección nueva `0x4e0dD0aAe21A8225d8C003288465d90Bc39239b9` verificada (Nov 2025, refactor).
 - Documentación actualizada (README, AUDITOR_GUIDE, THREAT_MODEL) y Changelog.
 
 ### Versión 1 (12 Nov 2025) – Release Inicial
@@ -691,7 +695,7 @@ MIT
 
 </details>
 
-<sub>Última actualización: 28 Nov 2025</sub>
+<sub>Última actualización: 29 Nov 2025</sub>
 
 ---
 

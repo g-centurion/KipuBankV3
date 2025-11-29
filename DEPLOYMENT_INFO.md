@@ -1,7 +1,7 @@
 # KipuBankV3 Deployment Information
 
 ## Contract Address
-`0x0197FB5AcCc60e573C627B7F0779290e200Ed445`
+`0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691`
 
 ## Network
 Sepolia Testnet (Chain ID: 11155111)
@@ -9,18 +9,18 @@ Sepolia Testnet (Chain ID: 11155111)
 ## Verification Links
 
 ### Etherscan
-https://sepolia.etherscan.io/address/0x0197FB5AcCc60e573C627B7F0779290e200Ed445
+https://sepolia.etherscan.io/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691
 
 ### Blockscout
-https://eth-sepolia.blockscout.com/address/0x0197fb5accc60e573c627b7f0779290e200ed445
+https://eth-sepolia.blockscout.com/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691
 
 ## Deployment Details
 
-- **Transaction Hash**: `0x55e527d4a833df35b15ecc88f59f34fc750845d7c8b4a32309f501c3bcbaa4cb`
-- **Block**: 9733263
+- **Transaction Hash**: `0x9e01b146c4fdcb3ff2968efe6ccbd34ddeeabfee4007a28be88b8128676ca409`
+- **Block**: 9734160
 - **Gas Used**: 3,134,689
-- **Gas Price**: 0.001100628 gwei
-- **Deployment Cost**: 0.000003450126484692 ETH
+- **Gas Price**: 0.001003132 gwei
+- **Deployment Cost**: 0.000003144506845948 ETH
 
 ## Configuration
 
