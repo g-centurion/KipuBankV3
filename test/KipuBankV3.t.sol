@@ -209,7 +209,7 @@ contract KipuBankV3Test is Test {
         vm.prank(user);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Bank__DepositExceedsCap.selector, 0, bank.BANK_CAP_USD(), hugeAmount * 2000 * 10 ** 8 / 10 ** 18
+                KipuBankV3.Bank__DepositExceedsCap.selector, 0, bank.BANK_CAP_USD(), hugeAmount * 2000 * 10 ** 8 / 10 ** 18
             )
         );
         bank.deposit{value: hugeAmount}();
@@ -217,7 +217,7 @@ contract KipuBankV3Test is Test {
 
     function testZeroAmountDeposit() public {
         vm.prank(user);
-        vm.expectRevert(Bank__ZeroAmount.selector);
+        vm.expectRevert(KipuBankV3.Bank__ZeroAmount.selector);
         bank.deposit{value: 0}();
     }
 
@@ -229,7 +229,7 @@ contract KipuBankV3Test is Test {
         tokenIn.approve(address(bank), amountIn);
 
         vm.prank(user);
-        vm.expectRevert(Bank__SlippageTooHigh.selector);
+        vm.expectRevert(KipuBankV3.Bank__SlippageTooHigh.selector);
         bank.depositAndSwapERC20(address(tokenIn), amountIn, minAmountOut, uint48(block.timestamp + 1));
     }
 
@@ -242,7 +242,7 @@ contract KipuBankV3Test is Test {
         bank.setEthPriceFeedAddress(address(invalidPriceFeed));
 
         vm.prank(user);
-        vm.expectRevert(Bank__TransferFailed.selector);
+        vm.expectRevert(KipuBankV3.Bank__TransferFailed.selector);
         bank.deposit{value: 1 ether}();
     }
 
@@ -254,21 +254,21 @@ contract KipuBankV3Test is Test {
 
         // Try to withdraw more than the limit
         vm.prank(user);
-        vm.expectRevert(abi.encodeWithSelector(Bank__WithdrawalExceedsLimit.selector, 1 ether, 2 ether));
+        vm.expectRevert(abi.encodeWithSelector(KipuBankV3.Bank__WithdrawalExceedsLimit.selector, 1 ether, 2 ether));
         bank.withdrawToken(address(0), 2 ether);
     }
 
     function testInvalidTokenWithdraw() public {
         address invalidToken = address(0x1234);
         vm.prank(user);
-        vm.expectRevert(Bank__TokenNotSupported.selector);
+        vm.expectRevert(KipuBankV3.Bank__TokenNotSupported.selector);
         bank.withdrawToken(invalidToken, 1 ether);
     }
 
     function testDepositInvalidToken() public {
         address invalidToken = address(0x1234);
         vm.prank(user);
-        vm.expectRevert(Bank__TokenNotSupported.selector);
+        vm.expectRevert(KipuBankV3.Bank__TokenNotSupported.selector);
         bank.depositAndSwapERC20(invalidToken, 1 ether, 0, uint48(block.timestamp + 1));
     }
 
@@ -313,7 +313,7 @@ contract KipuBankV3Test is Test {
         vm.prank(user);
 
         vm.expectEmit(true, true, false, true);
-        emit DepositSuccessful(user, address(0), amount);
+        emit KipuBankV3.DepositSuccessful(user, address(0), amount);
 
         bank.deposit{value: amount}();
     }
@@ -328,7 +328,7 @@ contract KipuBankV3Test is Test {
         // Luego retiramos y verificamos el evento
         vm.prank(user);
         vm.expectEmit(true, true, false, true);
-        emit WithdrawalSuccessful(user, address(0), amount);
+        emit KipuBankV3.WithdrawalSuccessful(user, address(0), amount);
 
         bank.withdrawToken(address(0), amount);
     }
@@ -440,7 +440,7 @@ contract KipuBankV3Test is Test {
         vm.startPrank(user);
         tokenIn.approve(address(bank), 1 ether);
 
-        vm.expectRevert(Bank__SlippageTooHigh.selector);
+        vm.expectRevert(KipuBankV3.Bank__SlippageTooHigh.selector);
         bank.depositAndSwapERC20(
             address(tokenIn),
             1 ether,
@@ -557,7 +557,7 @@ contract KipuBankV3Test is Test {
     function testInvalidTokenAddressThrows() public {
         // Intentar agregar token con dirección cero
         vm.prank(address(this));
-        vm.expectRevert(Bank__InvalidTokenAddress.selector);
+        vm.expectRevert(KipuBankV3.Bank__InvalidTokenAddress.selector);
         bank.addOrUpdateToken(address(0), address(0), 18);
     }
 
@@ -573,13 +573,13 @@ contract KipuBankV3Test is Test {
 
     function testZeroAmountSwap() public {
         vm.prank(user);
-        vm.expectRevert(Bank__ZeroAmount.selector);
+        vm.expectRevert(KipuBankV3.Bank__ZeroAmount.selector);
         bank.depositAndSwapERC20(address(tokenIn), 0, 0, uint48(block.timestamp + 1));
     }
 
     function testZeroAmountWithdraw() public {
         vm.prank(user);
-        vm.expectRevert(Bank__ZeroAmount.selector);
+        vm.expectRevert(KipuBankV3.Bank__ZeroAmount.selector);
         bank.withdrawToken(address(0), 0);
     }
 
@@ -762,7 +762,7 @@ contract KipuBankV3Test is Test {
         vm.prank(user);
 
         vm.expectEmit(true, true, false, true);
-        emit DepositSuccessful(user, address(0), 1 ether);
+        emit KipuBankV3.DepositSuccessful(user, address(0), 1 ether);
 
         bank.deposit{value: 1 ether}();
     }
@@ -787,7 +787,7 @@ contract KipuBankV3Test is Test {
         // Debe revertir por InsufficientBalance, no por WithdrawalExceedsLimit
         uint256 attemptAmount = 0.7 ether;
         vm.prank(user);
-        vm.expectRevert(abi.encodeWithSelector(Bank__InsufficientBalance.selector, 0.5 ether, attemptAmount));
+        vm.expectRevert(abi.encodeWithSelector(KipuBankV3.Bank__InsufficientBalance.selector, 0.5 ether, attemptAmount));
         bank.withdrawToken(address(0), attemptAmount);
     }
 
