@@ -1,4 +1,4 @@
-# 🚀 Guía de Despliegue - KipuBankV3_TP4
+# 🚀 Guía de Despliegue - KipuBankV3
 
 ## 📋 Pre-requisitos
 

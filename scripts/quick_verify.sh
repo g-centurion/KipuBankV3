@@ -1,7 +1,7 @@
 #!/bin/bash
 # Quick verification script
 
-CONTRACT="0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1"
+CONTRACT="0x0197FB5AcCc60e573C627B7F0779290e200Ed445"
 RPC="https://sepolia.gateway.tenderly.co"
 CAST="/home/sonic/.foundry/bin/cast"
 

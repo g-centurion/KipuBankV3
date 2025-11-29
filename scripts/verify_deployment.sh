@@ -17,7 +17,7 @@ echo "=========================================="
 echo ""
 
 # Dirección del contrato desplegado (v2)
-CONTRACT_ADDRESS="0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1"
+CONTRACT_ADDRESS="0x0197FB5AcCc60e573C627B7F0779290e200Ed445"
 DEPLOY_TX="0x0094c3f6c2b573c4d8f94af4fb6d26c5a379eb36637453132c30125075820bb0"
 
 # RPC endpoints
@@ -142,7 +142,7 @@ echo ""
 echo -e "${YELLOW}8. Comparando bytecode local vs on-chain...${NC}"
 
 # Generar bytecode local
-forge inspect src/KipuBankV3_TP4.sol:KipuBankV3 deployedBytecode > /tmp/local_bytecode.txt
+forge inspect src/KipuBankV3.sol:KipuBankV3 deployedBytecode > /tmp/local_bytecode.txt
 cast code $CONTRACT_ADDRESS --rpc-url $RPC_SEPOLIA > /tmp/onchain_bytecode.txt
 
 LOCAL_SIZE=$(cat /tmp/local_bytecode.txt | wc -c)

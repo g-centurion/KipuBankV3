@@ -380,8 +380,8 @@ flowchart TD
 <summary><h2>Instalación y Uso</h2></summary>
 
 ```bash
-git clone https://github.com/g-centurion/KipuBankV3_TP4.git
-cd KipuBankV3_TP4
+git clone https://github.com/g-centurion/KipuBankV3.git
+cd KipuBankV3
 forge install
 ```
 
@@ -516,7 +516,7 @@ forge coverage --report lcov
 genhtml lcov.info --branch-coverage --output-directory coverage
 
 # Abrir reporte (WSL)
-# Navegar a: \\wsl.localhost\Ubuntu\home\sonic\KipuBankV3_TP4\coverage\index.html
+# Navegar a: \\wsl.localhost\Ubuntu\home\sonic\KipuBankV3\coverage\index.html
 ```
 
 **Nota**: El reporte HTML muestra cobertura detallada línea por línea, destacando código ejecutado y no ejecutado, con estadísticas de branches y funciones.

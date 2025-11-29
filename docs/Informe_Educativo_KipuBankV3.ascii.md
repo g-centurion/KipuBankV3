@@ -1,9 +1,9 @@
-# Informe Educativo – KipuBankV3_TP4
+# Informe Educativo – KipuBankV3
 
 Autor: Equipo KipuBankV3 · Fecha: 28 Nov 2025 (última actualización)
 
 - Audiencia: lectores sin experiencia previa en blockchain.
-- Objetivo: explicar la construcción de KipuBankV3_TP4 y cómo reproducir el flujo completo (entorno, contrato, pruebas, despliegue, interacción y seguridad).
+- Objetivo: explicar la construcción de KipuBankV3 y cómo reproducir el flujo completo (entorno, contrato, pruebas, despliegue, interacción y seguridad).
 
 ---
 
@@ -174,7 +174,7 @@ Documentos complementarios:
 ---
 
 ## 15. Conclusiones
-KipuBankV3_TP4 ilustra un flujo completo de diseño, desarrollo, pruebas y despliegue de un smart contract con integraciones DeFi y enfoque en seguridad. El código busca ser legible, modular y seguro, priorizando prácticas recomendadas y límites operativos claros.
+KipuBankV3 ilustra un flujo completo de diseño, desarrollo, pruebas y despliegue de un smart contract con integraciones DeFi y enfoque en seguridad. El código busca ser legible, modular y seguro, priorizando prácticas recomendadas y límites operativos claros.
 
 ---
 
@@ -190,7 +190,7 @@ Se incluye el contenido completo del README (secciones expandidas) para referenc
 
 <div align="center">
 
-# KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
+# KipuBankV3 – Banco DeFi con Swaps y Oráculos
 <strong>Contrato desplegado en Sepolia</strong>
 
 <sub>
@@ -973,8 +973,8 @@ TOKEN_MANAGER_ROLE:
 ### Instalación y uso
 
 ```bash
-git clone https://github.com/g-centurion/KipuBankV3_TP4.git
-cd KipuBankV3_TP4
+git clone https://github.com/g-centurion/KipuBankV3.git
+cd KipuBankV3
 forge install
 ```
 
@@ -1044,7 +1044,7 @@ Tipos de pruebas: unitarias, integración (router/oráculo mocked), fuzzing, eve
 
 | Archivo | Líneas | Cobertura |
 |---------|--------|-----------|
-| `src/KipuBankV3_TP4.sol` | 101/113 | 89.38% |
+| `src/KipuBankV3.sol` | 101/113 | 89.38% |
 | `test/KipuBankV3Test.sol` | 48/59 | 81.36% |
 | `script/Deploy.s.sol` | 0/26 | 0% (no ejecutado en tests) |
 | `script/Interact.s.sol` | 0/20 | 0% (no ejecutado en tests) |
@@ -1219,6 +1219,6 @@ MIT
 
 ---
 
-> Repositorio: https://github.com/g-centurion/KipuBankV3_TP4  
+> Repositorio: https://github.com/g-centurion/KipuBankV3  
 > Contrato (Sepolia): `0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`  
 > Última actualización del Informe Educativo: 13 Nov 2025
