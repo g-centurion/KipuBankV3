@@ -20,68 +20,19 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // =========================================================================
-    // ERRORS
+    // 1. TYPE DECLARATIONS
     // =========================================================================
 
-    /// @dev Thrown when the deposited amount would exceed the global USD cap.
-    /// @param currentBalanceUsd Bank USD value before the attempted deposit.
-    /// @param bankCapUsd The configured global cap in USD (8 decimals).
-    /// @param attemptedDepositUsd USD value (8 decimals) of the pending deposit.
-    error Bank__DepositExceedsCap(uint256 currentBalanceUsd, uint256 bankCapUsd, uint256 attemptedDepositUsd);
-
-    /// @dev Thrown when the requested withdrawal amount exceeds the per-transaction limit.
-    /// @param limit The maximum allowed withdrawal per transaction.
-    /// @param requested The amount the user attempted to withdraw.
-    error Bank__WithdrawalExceedsLimit(uint256 limit, uint256 requested);
-
-    /// @dev Thrown when the user attempts to withdraw more than their available balance.
-    /// @param available The user's current balance.
-    /// @param requested The amount the user attempted to withdraw.
-    error Bank__InsufficientBalance(uint256 available, uint256 requested);
-
-    /// @dev Thrown when a transfer (ETH or ERC-20) fails.
-    error Bank__TransferFailed();
-
-    /// @dev Thrown when an invalid token address (like address(0)) is used in an ERC-20 context.
-    error Bank__InvalidTokenAddress();
-
-    /// @dev Thrown when a zero amount is provided to a function that expects > 0.
-    error Bank__ZeroAmount();
-
-    /// @dev Thrown when a token is not supported by the bank's token catalog.
-    error Bank__TokenNotSupported();
-
-    /// @dev Thrown if the price obtained after the swap is less than the minimum expected amount.
-    error Bank__SlippageTooHigh();
-
-    /// @dev Thrown if the price obtained from Chainlink is stale.
-    /// @param updateTime Timestamp returned by the oracle for the last price update.
-    /// @param currentTime `block.timestamp` at validation time.
-    error Bank__StalePrice(uint256 updateTime, uint256 currentTime);
-
-    /// @dev Thrown if the price deviates more than MAX_PRICE_DEVIATION_BPS from the last recorded price.
-    /// @param currentPrice The newly fetched price.
-    /// @param previousPrice The previously recorded price.
-    error Bank__PriceDeviation(int256 currentPrice, int256 previousPrice);
+    /// @notice Configuration for a supported token.
+    /// @dev Includes price feed address, decimals and allowed flag.
+    struct TokenData {
+        address priceFeedAddress;
+        uint8 tokenDecimals;
+        bool isAllowed;
+    }
 
     // =========================================================================
-    // EVENTS
-    // =========================================================================
-
-    /// @dev Emitted upon a successful ETH or ERC-20 deposit or a successful swap to USDC.
-    /// @param user The address of the depositor.
-    /// @param token The token address (address(0) for ETH, USDC address for swaps).
-    /// @param amount The amount deposited/received.
-    event DepositSuccessful(address indexed user, address indexed token, uint256 amount);
-
-    /// @dev Emitted upon a successful ETH or ERC-20 withdrawal.
-    /// @param user The address of the user who withdrew.
-    /// @param token The token address (address(0) for ETH).
-    /// @param amount The amount withdrawn.
-    event WithdrawalSuccessful(address indexed user, address indexed token, uint256 amount);
-
-    // =========================================================================
-    // ROLES & CONSTANTS
+    // 2. STATE VARIABLES (Roles, Constants, Immutables, Mappings)
     // =========================================================================
 
     /// @notice Role authorized to manage bank caps and oracles.
@@ -102,7 +53,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /// @notice Maximum withdrawal amount per transaction.
     uint256 public immutable MAX_WITHDRAWAL_PER_TX;
-
+    
     /// @notice Identifier for native ETH (address(0)).
     address private constant ETH_TOKEN = address(0);
 
@@ -119,14 +70,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     /// @notice Last recorded ETH/USD price (8 decimals) for deviation validation.
     int256 private lastRecordedPrice;
 
-    /// @notice Configuration for a supported token.
-    /// @dev Includes price feed address, decimals and allowed flag.
-    struct TokenData {
-        address priceFeedAddress;
-        uint8 tokenDecimals;
-        bool isAllowed;
-    }
-
     /// @notice Catalog of supported tokens with their configuration.
     mapping(address => TokenData) private sTokenCatalog;
 
@@ -139,32 +82,72 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     uint256 private _withdrawalCount;
 
     // =========================================================================
-    // MODIFIERS
+    // 3. EVENTS
+    // =========================================================================
+
+    /// @dev Emitted upon a successful ETH or ERC-20 deposit or a successful swap to USDC.
+    event DepositSuccessful(address indexed user, address indexed token, uint256 amount);
+
+    /// @dev Emitted upon a successful ETH or ERC-20 withdrawal.
+    event WithdrawalSuccessful(address indexed user, address indexed token, uint256 amount);
+
+    // =========================================================================
+    // 4. ERRORS
+    // =========================================================================
+
+    /// @dev Thrown when the deposited amount would exceed the global USD cap.
+    error Bank__DepositExceedsCap(uint256 currentBalanceUsd, uint256 bankCapUsd, uint256 attemptedDepositUsd);
+
+    /// @dev Thrown when the requested withdrawal amount exceeds the per-transaction limit.
+    error Bank__WithdrawalExceedsLimit(uint256 limit, uint256 requested);
+
+    /// @dev Thrown when the user attempts to withdraw more than their available balance.
+    error Bank__InsufficientBalance(uint256 available, uint256 requested);
+
+    /// @dev Thrown when a transfer (ETH or ERC-20) fails.
+    error Bank__TransferFailed();
+
+    /// @dev Thrown when an invalid token address (like address(0)) is used in an ERC-20 context.
+    error Bank__InvalidTokenAddress();
+
+    /// @dev Thrown when a zero amount is provided to a function that expects > 0.
+    error Bank__ZeroAmount();
+
+    /// @dev Thrown when a token is not supported by the bank's token catalog.
+    error Bank__TokenNotSupported();
+
+    /// @dev Thrown if the price obtained after the swap is less than the minimum expected amount.
+    error Bank__SlippageTooHigh();
+
+    /// @dev Thrown if the price obtained from Chainlink is stale.
+    error Bank__StalePrice(uint256 updateTime, uint256 currentTime);
+
+    /// @dev Thrown if the price deviates more than MAX_PRICE_DEVIATION_BPS from the last recorded price.
+    error Bank__PriceDeviation(int256 currentPrice, int256 previousPrice);
+
+    // =========================================================================
+    // 5. MODIFIERS
     // =========================================================================
 
     /// @dev Requires amount > 0.
-    /// @param amount_ The amount to validate.
     modifier nonZero(uint256 amount_) {
         if (amount_ == 0) revert Bank__ZeroAmount();
         _;
     }
 
     /// @dev Requires supported withdrawal token (ETH or USDC).
-    /// @param token_ The address of the token to check.
     modifier supportedWithdrawToken(address token_) {
         if (token_ != ETH_TOKEN && token_ != USDC_TOKEN) revert Bank__TokenNotSupported();
         _;
     }
 
     /// @dev Requires withdrawal respects per-transaction limit.
-    /// @param amount_ The amount requested for withdrawal.
     modifier withinWithdrawLimit(uint256 amount_) {
         if (amount_ > MAX_WITHDRAWAL_PER_TX) revert Bank__WithdrawalExceedsLimit(MAX_WITHDRAWAL_PER_TX, amount_);
         _;
     }
 
     /// @dev Requires allowed deposit token (not ETH, not USDC, and marked as allowed).
-    /// @param token_ The address of the token to validate.
     modifier allowedDepositToken(address token_) {
         if (token_ == ETH_TOKEN || token_ == USDC_TOKEN) revert Bank__InvalidTokenAddress();
         if (!sTokenCatalog[token_].isAllowed) revert Bank__TokenNotSupported();
@@ -172,15 +155,11 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     }
 
     // =========================================================================
-    // CONSTRUCTOR
+    // 6. FUNCTIONS (Constructor, External, Internal, View)
     // =========================================================================
 
     /**
      * @dev Initializes the contract with Chainlink oracle, Uniswap Router, USDC address, and withdrawal limit.
-     * @param ethPriceFeedAddress_ Address of the ETH/USD Chainlink oracle.
-     * @param maxWithdrawalAmount_ Maximum amount a user can withdraw per transaction.
-     * @param routerAddress_ Address of the UniswapV2Router02.
-     * @param usdcAddress_ Address of the USDC token.
      */
     constructor(
         address ethPriceFeedAddress_,
@@ -204,14 +183,16 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         USDC_TOKEN = usdcAddress_;
         WETH_TOKEN = I_ROUTER.WETH();
 
-        sTokenCatalog[USDC_TOKEN] = TokenData({priceFeedAddress: address(0), tokenDecimals: 6, isAllowed: true});
+        sTokenCatalog[USDC_TOKEN] = TokenData({
+            priceFeedAddress: address(0),
+            tokenDecimals: 6,
+            isAllowed: true
+        });
         sTokenCatalog[ETH_TOKEN] =
             TokenData({priceFeedAddress: ethPriceFeedAddress_, tokenDecimals: 18, isAllowed: true});
     }
 
-    // =========================================================================
-    // ADMIN FUNCTIONS
-    // =========================================================================
+    // --- ADMIN FUNCTIONS ---
 
     /// @notice Pauses the contract (emergency). Only `PAUSE_MANAGER_ROLE`.
     function pause() external onlyRole(PAUSE_MANAGER_ROLE) {
@@ -224,34 +205,22 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
     }
 
     /// @notice Updates the ETH/USD oracle address. Only `CAP_MANAGER_ROLE`.
-    /// @param newAddress The new address of the Chainlink ETH/USD aggregator.
     function setEthPriceFeedAddress(address newAddress) external onlyRole(CAP_MANAGER_ROLE) {
         sEthPriceFeed = AggregatorV3Interface(newAddress);
     }
 
     /**
      * @notice Adds or updates a supported token in the bank's token catalog.
-     * @dev Restricted to accounts with TOKEN_MANAGER_ROLE.
-     * @param token Address of the token to register.
-     * @param priceFeed Address of the Chainlink price feed for the token.
-     * @param decimals Token decimals.
      */
     function addOrUpdateToken(address token, address priceFeed, uint8 decimals) external onlyRole(TOKEN_MANAGER_ROLE) {
         if (token == address(0)) revert Bank__InvalidTokenAddress();
         sTokenCatalog[token] = TokenData({priceFeedAddress: priceFeed, tokenDecimals: decimals, isAllowed: true});
     }
 
-    // =========================================================================
-    // CORE FUNCTIONS
-    // =========================================================================
+    // --- CORE FUNCTIONS ---
 
     /**
      * @notice Deposits ERC-20 token and automatically swaps it to USDC via Uniswap V2.
-     * @dev Follows CEI pattern. Checks bank cap before transferring tokens.
-     * @param tokenIn Address of the ERC-20 token to deposit.
-     * @param amountIn Amount of tokenIn to deposit.
-     * @param amountOutMin Minimum amount of USDC expected (slippage protection).
-     * @param deadline Unix timestamp deadline for the swap.
      */
     function depositAndSwapERC20(address tokenIn, uint256 amountIn, uint256 amountOutMin, uint48 deadline)
         external
@@ -280,8 +249,13 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).safeIncreaseAllowance(address(I_ROUTER), amountIn);
 
-        uint256[] memory actualAmounts =
-            I_ROUTER.swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), deadline);
+        uint256[] memory actualAmounts = I_ROUTER.swapExactTokensForTokens(
+            amountIn,
+            amountOutMin,
+            path,
+            address(this),
+            deadline
+        );
 
         uint256 usdcReceived = actualAmounts[actualAmounts.length - 1];
         if (usdcReceived < amountOutMin) revert Bank__SlippageTooHigh();
@@ -296,7 +270,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Deposits ETH to the bank.
-     * @dev Follows CEI pattern. Checks bank cap using balance before msg.value is added.
      */
     function deposit() external payable whenNotPaused nonReentrant nonZero(msg.value) {
         uint256 ethPriceUsd = _getEthPriceInUsd();
@@ -315,9 +288,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Withdraws ETH or USDC from the bank.
-     * @dev Follows CEI pattern. Uses low-level call for ETH and SafeERC20 for tokens.
-     * @param tokenAddress Address of the token (address(0) for ETH).
-     * @param amountToWithdraw Amount to withdraw.
      */
     function withdrawToken(address tokenAddress, uint256 amountToWithdraw)
         external
@@ -345,15 +315,10 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
         emit WithdrawalSuccessful(msg.sender, tokenAddress, amountToWithdraw);
     }
 
-    // =========================================================================
-    // INTERNAL & VIEW FUNCTIONS
-    // =========================================================================
+    // --- INTERNAL & VIEW FUNCTIONS ---
 
     /**
      * @dev Calculates total bank value in USD including pending deposit.
-     * @param pendingUsdValue Pending deposit value in USD (8 decimals).
-     * @param ethPriceUsd ETH price in USD (8 decimals).
-     * @return Total USD value.
      */
     function _getBankTotalUsdValue(uint256 pendingUsdValue, uint256 ethPriceUsd) private view returns (uint256) {
         uint256 ethBalance = address(this).balance;
@@ -365,8 +330,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Checks if adding pending deposit would exceed bank cap.
-     * @param pendingUsdValue Pending deposit value in USD (8 decimals).
-     * @param ethPriceUsd ETH price in USD (8 decimals).
      */
     function _checkBankCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
         uint256 currentUsdBalance = _getBankTotalUsdValue(0, ethPriceUsd);
@@ -380,8 +343,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Checks ETH deposit cap accounting for msg.value already in balance.
-     * @param pendingUsdValue Pending ETH deposit value in USD (8 decimals).
-     * @param ethPriceUsd ETH price in USD (8 decimals).
      */
     function _checkEthDepositCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
         uint256 preEthBalance = address(this).balance - msg.value;
@@ -398,7 +359,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Retrieves latest ETH/USD price from Chainlink oracle with validation.
-     * @return uintPrice ETH price in USD (8 decimals).
      */
     function _getEthPriceInUsd() internal view returns (uint256 uintPrice) {
         (, int256 price,, uint256 updatedAt,) = sEthPriceFeed.latestRoundData();
@@ -412,7 +372,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
         uintPrice = uint256(price);
 
-        int256 lr = lastRecordedPrice; // Storage optimization: read once
+        int256 lr = lastRecordedPrice;
 
         if (lr > 0) {
             int256 priceDiff = price - lr;
@@ -427,7 +387,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Updates last recorded price for deviation checking.
-     * @param newPrice Latest accepted ETH/USD price (8 decimals).
      */
     function _updateRecordedPrice(int256 newPrice) internal {
         lastRecordedPrice = newPrice;
@@ -435,9 +394,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Converts ETH amount to USD value.
-     * @param ethAmount Amount in Wei (18 decimals).
-     * @param ethPriceUsd ETH price in USD (8 decimals).
-     * @return USD value (8 decimals).
      */
     function _getUsdValueFromWei(uint256 ethAmount, uint256 ethPriceUsd) private pure returns (uint256) {
         return (ethAmount * ethPriceUsd) / 10 ** 18;
@@ -445,8 +401,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Converts USDC amount to USD value.
-     * @param usdcAmount Amount in USDC (6 decimals).
-     * @return USD value (8 decimals).
      */
     function _getUsdValueFromUsdc(uint256 usdcAmount) private pure returns (uint256) {
         return usdcAmount * 10 ** 2;
@@ -454,7 +408,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns total number of successful deposits.
-     * @return depositCount The total number of deposits recorded.
      */
     function getDepositCount() external view returns (uint256) {
         return _depositCount;
@@ -462,7 +415,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns number of successful withdrawals.
-     * @return withdrawalCount The total number of withdrawals recorded.
      */
     function getWithdrawalCount() external view returns (uint256) {
         return _withdrawalCount;
@@ -470,7 +422,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns WETH address used for swap routing.
-     * @return weth The canonical WETH token address configured in the router.
      */
     function getWethAddress() external view returns (address) {
         return WETH_TOKEN;
@@ -478,8 +429,6 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Declares support for AccessControl interfaces.
-     * @param interfaceId Interface identifier (ERC165).
-     * @return True if interface is supported.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
         return AccessControl.supportsInterface(interfaceId);
