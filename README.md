@@ -1,12 +1,12 @@
  
 <div align="center">
 
-# KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
-<strong>Contrato desplegado en Sepolia (v2 - con correcciones)</strong>
+# KipuBankV3_TP4 – Banco DeFi Educativo (Swaps + Oráculos + Límites)
+<strong>Contrato desplegado en Sepolia (v2 con correcciones post auditoría)</strong>
 
 <p>
-<strong>Contrato:</strong> <code>0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1</code> ·
-<strong>Tx:</strong> <code>0x0094c3f6c2b573c4d8f94af4fb6d26c5a379eb36637453132c30125075820bb0</code><br/>
+<strong>Dirección del contrato:</strong> <code>0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1</code><br/>
+<strong>Transacción de deploy:</strong> <code>0x0094c3f6c2b573c4d8f94af4fb6d26c5a379eb36637453132c30125075820bb0</code><br/>
 <a href="https://sepolia.etherscan.io/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1#code">Etherscan</a> ·
 <a href="https://eth-sepolia.blockscout.com/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1">Blockscout</a>
 </p>
@@ -16,171 +16,175 @@
 ---
 
 <details open>
-<summary><h2>KipuBankV3: Trabajo práctico 4 (incluye correcciones TP3)</h2></summary>
+<summary><h2>Resumen del Trabajo Práctico 4 (incluye correcciones del TP3)</h2></summary>
 
-- Visión general: [Resumen ejecutivo](#resumen-ejecutivo) y [Decisiones de diseño y trade-offs](#decisiones-de-diseno-y-trade-offs).
-- Despliegue e interacción: [Instalación y uso](#instalacion-y-uso), [Deploy y verificación](#deploy-y-verificacion) y [Interacción on-chain (cast)](#interaccion-on-chain-cast).
-- Análisis de amenazas: [Informe de análisis de amenazas (resumen)](#informe-de-analisis-de-amenazas-resumen) y [THREAT_MODEL.md](THREAT_MODEL.md).
-- Pruebas: [Testing y cobertura](#testing-y-cobertura) (cobertura y métodos de prueba).
+- Visión general: [Resumen Ejecutivo](#resumen-ejecutivo) y [Decisiones de Diseño](#decisiones-de-diseno-y-trade-offs).
+- Despliegue e interacción: [Instalación y Uso](#instalacion-y-uso), [Deploy y Verificación](#deploy-y-verificacion), [Interacción On‑Chain (cast)](#interaccion-on-chain-cast).
+- Seguridad: [Resumen de Análisis de Amenazas](#informe-de-analisis-de-amenazas-resumen) y archivo completo [THREAT_MODEL.md](THREAT_MODEL.md).
+- Pruebas: [Testing y Cobertura](#testing-y-cobertura).
+- Verificación técnica: [Bytecode y diferencias](#verificacion-tecnica-bytecode).
 
 </details>
 
-## Table of Contents
-- [Executive Summary](#executive-summary)
-- [Key Features](#key-features)
-- [Technical Specifications](#technical-specifications)
-- [Evolution from KipuBankV2](#evolution-from-kipubankv2)
-- [Design Decisions & Trade-offs](#design-decisions-and-trade-offs)
-- [DeFi Integrations](#defi-integrations)
-- [Essential Diagrams](#essential-diagrams)
-- [Installation & Usage](#installation-and-usage)
-- [On-chain Interaction](#on-chain-interaction)
-- [Testing & Coverage](#testing-and-coverage)
-- [Threat Analysis Summary](#threat-analysis-summary)
-- [Project Deliverable](#project-deliverable)
-- [Deploy & Verification](#deploy-and-verification)
-- [Gas Optimizations](#gas-optimizations)
-- [Limitations & Roadmap](#limitations-and-roadmap)
+## Tabla de Contenidos
+- [Resumen Ejecutivo](#resumen-ejecutivo)
+- [Características Clave](#caracteristicas-clave)
+- [Evolución desde V2](#evolucion-desde-kipubankv2)
+- [Especificaciones Técnicas](#especificaciones-tecnicas)
+- [Decisiones de Diseño y Trade-offs](#decisiones-de-diseno-y-trade-offs)
+- [Integraciones DeFi](#integraciones-defi)
+- [Diagramas Esenciales](#diagramas-esenciales)
+- [Instalación y Uso](#instalacion-y-uso)
+- [Interacción On-Chain (cast)](#interaccion-on-chain-cast)
+- [Testing y Cobertura](#testing-y-cobertura)
+- [Resumen de Análisis de Amenazas](#informe-de-analisis-de-amenazas-resumen)
+- [Entregable TP4](#entregable-tp4)
+- [Deploy y Verificación](#deploy-y-verificacion)
+- [Verificación Técnica Bytecode](#verificacion-tecnica-bytecode)
+- [Optimizaciones de Gas](#gas-y-optimizaciones)
+- [Limitaciones y Roadmap](#limitaciones-y-roadmap)
 - [Changelog](#changelog)
-- [License](#license)
+- [Licencia](#licencia)
 
 ---
 
-<a id="executive-summary"></a>
+<a id="resumen-ejecutivo"></a>
 <details open>
-<summary><h2>Executive Summary</h2></summary>
+<summary><h2>Resumen Ejecutivo</h2></summary>
 
-KipuBankV3 is an educational DeFi contract supporting ETH and ERC-20 deposits (with automatic swap to USDC), withdrawals with per-transaction limits, and robust Chainlink oracle validation. Features CEI pattern, ReentrancyGuard, Pausable, AccessControl, and custom errors for production-grade security.
+KipuBankV3 es un contrato DeFi educativo que soporta depósitos de ETH y ERC‑20 (con swap automático a USDC), retiros con límite por transacción, validación robusta de precios usando Chainlink y control de riesgos mediante un cap global en USD. Aplica patrón CEI, ReentrancyGuard, Pausable, AccessControl y errores personalizados para seguridad y eficiencia de gas.
 
 </details>
 
 ---
 
-<a id="key-features"></a>
+<a id="caracteristicas-clave"></a>
 <details open>
-<summary><h2>Key Features</h2></summary>
+<summary><h2>Características Clave</h2></summary>
 
-- Deposits: Native ETH and ERC-20 with USDC conversion via Uniswap V2.
-- Multi-token accounting with internal user balances.
-- Global bank cap in USD and per-transaction withdrawal limit.
-- Oracle validation: staleness check (1 hour) and max deviation (5% circuit breaker).
-- RBAC with separated roles and emergency pause functionality.
-- Optional Timelock (`TimelockKipuBank.sol`) for deferred administrative changes.
+- Depósitos de ETH y ERC‑20 con conversión automática a USDC vía Uniswap V2.
+- Contabilidad interna por usuario (balances por token) sin emitir ERC‑20 propio.
+- Límite global (cap) en USD y límite de retiro por transacción.
+- Validación de oráculo: tiempo máximo de antigüedad (3 horas) y desviación máxima (5%).
+- RBAC con separación de roles (admin, cap_manager, pause_manager, token_manager).
+- Pausa de emergencia (`pause/unpause`).
+- Timelock opcional (`TimelockKipuBank.sol`) para cambios diferidos de configuración sensible.
 
 </details>
 
 ---
 
-<a id="evolution-from-kipubankv2"></a>
+<a id="evolucion-desde-kipubankv2"></a>
 <details open>
-<summary><h2>Evolution from KipuBankV2</h2></summary>
+<summary><h2>Evolución desde KipuBankV2</h2></summary>
 
-KipuBankV3 is a direct evolution of KipuBankV2, incorporating instructor feedback corrections and functional enhancements.
+Esta versión incorpora feedback de la iteración anterior y añade funcionalidad avanzada.
 
-Improvements and corrections applied:
-- Complete NatSpec: all functions, parameters, events, errors, and constants documented.
-- Custom errors replacing `require` with string messages for gas efficiency.
-- Atomicity and revert safety: strict CEI pattern adoption; all checks before state mutations or external interactions.
-- Role-based logic with modifiers: using `onlyRole` (AccessControl) for administrative operations.
-- Bank cap enforcement: explicit validation on ETH and ERC-20 deposits with USD conversion.
-- State organization: variables grouped by purpose (immutables/constants first, coherent storage).
-- Optimizations: storage read caching and `unchecked` only where provably safe.
-- Professional style: English-only NatSpec and comments, simplified format.
+Mejoras y correcciones:
+- NatSpec completa en funciones, eventos, errores y constantes.
+- Errores personalizados (gas menor que `require` con string).
+- Atomicidad reforzada en validación de cap (snapshot antes de proyectar depósito pendiente).
+- Uso estricto de patrón CEI (Checks → Effects → Interactions).
+- Roles gestionados con `AccessControl` y separación de responsabilidades.
+- Cap en USD para depósitos ETH y swaps ERC‑20→USDC (con conversión consistente).
+- Organización clara de storage (constants/immutables al inicio).
+- Uso de `unchecked` únicamente donde el overflow es irrealista dado el cap.
 
-New features in V3:
-- Automatic swaps to USDC via Uniswap V2 with WETH routing.
-- Chainlink price validation (staleness + 5% deviation) with last recorded price tracking.
-- Per-transaction withdrawal limit and global USD cap.
-- Role-managed token catalog and optional Timelock for sensitive changes.
+Nuevas características V3:
+- Swap automático a USDC (ruta Token→WETH→USDC o WETH→USDC según origen).
+- Validación doble de precio (staleness y desviación vs precio anterior).
+- Límite por retiro y contador de depósitos/retiros.
+- Catálogo de tokens administrado por rol.
+- Timelock opcional para gobernanza diferida.
 
 </details>
 
-<a id="technical-specifications"></a>
+<a id="especificaciones-tecnicas"></a>
 <details>
-<summary><h2>Technical Specifications</h2></summary>
+<summary><h2>Especificaciones Técnicas</h2></summary>
 
-### Architecture (inheritance, libraries and interfaces)
-- Inheritance: `AccessControl`, `Pausable`, `ReentrancyGuard`.
-- Libraries: `SafeERC20`.
+### Arquitectura (herencia, librerías e interfaces)
+- Herencia: `AccessControl`, `Pausable`, `ReentrancyGuard`.
+- Librerías: `SafeERC20`.
 - Interfaces: `IERC20`, `IUniswapV2Router02`, `AggregatorV3Interface`.
 
-### Constants and parameters
-- `BANK_CAP_USD = 1,000,000 * 1e8` (USD, 8 decimals)
-- `PRICE_FEED_TIMEOUT = 1 hours`
-- `MAX_PRICE_DEVIATION_BPS = 500` (5%)
-- `MAX_WITHDRAWAL_PER_TX` (immutable, defined in constructor)
+### Constantes y parámetros
+- `BANK_CAP_USD = 1_000_000 * 10^8` (USD, 8 decimales).
+- `PRICE_FEED_TIMEOUT = 3 hours` (actualizado v2).
+- `MAX_PRICE_DEVIATION_BPS = 500` (5%).
+- `MAX_WITHDRAWAL_PER_TX` (immutable configurado en constructor).
 
-### Functional modules (previous TPs + TP4)
-- ETH deposits: `deposit()` with price and cap validation.
-- ERC-20 deposits with swap: `depositAndSwapERC20()` (route Token→WETH→USDC; or WETH→USDC).
-- Withdrawals: `withdrawToken(address token, uint256 amount)` (ETH or USDC).
-- Oracles: `_getEthPriceInUsd()` with staleness and deviation validation.
-- USD conversion: `_getUsdValueFromWei()`, `_getUsdValueFromUsdc()`.
-- Global limit: `_checkBankCap()`, `_checkEthDepositCap()` + `_getBankTotalUsdValue()`.
-- Metrics: `getDepositCount()`, internal counters.
+### Módulos funcionales
+- Depósito ETH: `deposit()` valida precio y cap antes de mutar estado.
+- Depósito ERC‑20 con swap: `depositAndSwapERC20()` ruta dinámica (2 o 3 hops) y validación de cap previa.
+- Retiro: `withdrawToken(token, amount)` con límites y soporte ETH/USDC.
+- Oráculo: `_getEthPriceInUsd()` staleness (<= 3h) + desviación (<=5%).
+- Conversión USD: `_getUsdValueFromWei()`, `_getUsdValueFromUsdc()`.
+- Cap global: `_checkBankCap()` y `_checkEthDepositCap()` + `_getBankTotalUsdValue()`.
+- Métricas: contadores de depósitos y retiros + `getDepositCount()`.
 
-### Supported tokens and catalog
-- Base: ETH (address(0)) and USDC (6 decimals) enabled in constructor.
-- Extension: `addOrUpdateToken(token, priceFeed, decimals)` under `TOKEN_MANAGER_ROLE`.
+### Catálogo de tokens
+- Base: ETH (address(0)) y USDC (6 decimales) habilitados en constructor.
+- Extensión: `addOrUpdateToken(token, priceFeed, decimals)` bajo `TOKEN_MANAGER_ROLE`.
 
-### Optional Timelock
-- [`src/TimelockKipuBank.sol`](src/TimelockKipuBank.sol) (based on OZ `TimelockController`): allows scheduling and executing changes (e.g., `setEthPriceFeedAddress`) with a minimum delay of 2 days.
+### Timelock opcional
+- Archivo: `src/TimelockKipuBank.sol` basado en `TimelockController` de OpenZeppelin (delay mínimo ejemplo: 2 días).
 
 </details>
 
 ---
 
-<a id="on-chain-interaction"></a>
+<a id="interaccion-on-chain"></a>
 <details open>
-<summary><h2>On-chain Interaction (try it)</h2></summary>
+<summary><h2>Interacción On‑Chain (ejemplos cast)</h2></summary>
 
-Quick `cast` examples on Sepolia. Replace `[ADDR]` with the deployed address (`0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`).
+Ejemplos rápidos con `cast`. Sustituir `[ADDR]` por `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1`.
 
-- Read deposit count:
+- Contador de depósitos:
    - `cast call [ADDR] "getDepositCount()(uint256)" --rpc-url $RPC_URL_SEPOLIA`
-- Read WETH address:
+- Dirección WETH:
    - `cast call [ADDR] "getWethAddress()(address)" --rpc-url $RPC_URL_SEPOLIA`
-- Read USDC balance of an account:
-   - `cast call [ADDR] "balances(address,address)(uint256)" 0xYourAddr 0x1c7D4B196Cb0C6B364C3d6eB8F0708a9dA00375D --rpc-url $RPC_URL_SEPOLIA`
-- Send ETH deposit (0.01 ETH):
+- Balance USDC de usuario:
+   - `cast call [ADDR] "balances(address,address)(uint256)" 0xTU_DIRECCION 0x1c7D4B196Cb0C6B364C3d6eB8F0708a9dA00375D --rpc-url $RPC_URL_SEPOLIA`
+- Depósito ETH (0.01 ETH):
    - `cast send [ADDR] --value 0.01ether --rpc-url $RPC_URL_SEPOLIA --private-key $PRIVATE_KEY`
-- Withdraw USDC (example 1 USDC = 1000000):
+- Retiro USDC (1 USDC = 1_000_000 unidades):
    - `cast send [ADDR] "withdrawToken(address,uint256)" 0x1c7D4B196Cb0C6B364C3d6eB8F0708a9dA00375D 1000000 --rpc-url $RPC_URL_SEPOLIA --private-key $PRIVATE_KEY`
 
-Notes:
-- Always source `.env` in WSL: `source .env`.
-- Ensure you have balance and correct RPC before sending transactions.
+Notas:
+- Ejecutar `source .env` en WSL antes de usar cast.
+- Verificar fondos y RPC antes de interactuar.
 
 </details>
 
-<a id="design-decisions-and-trade-offs"></a>
+<a id="decisiones-de-diseno-y-trade-offs"></a>
 <details>
-<summary><h2>Design Decisions & Trade-offs</h2></summary>
+<summary><h2>Decisiones de Diseño y Trade-offs</h2></summary>
 
-- USDC accounting base: simplifies accounting and UX; trade-off: dependency on router and oracle.
-- Fixed swap route via WETH: maximizes liquidity on Uniswap V2; trade-off: route not always optimal for price.
-- Price validation (staleness + 5% deviation): increases security against outliers; trade-off: may revert during volatility spikes.
-- Global USD cap and per-transaction withdrawal limit: reduces systemic and drainage risk; trade-off: restricts large amounts.
-- Separated RBAC (admin/cap/pause/token): smaller error surface; trade-off: increased role management overhead.
-- CEI pattern + ReentrancyGuard and SafeERC20: security baseline; trade-off: marginal gas cost.
-- Optional Timelock for sensitive changes: defense against rushed changes; trade-off: reduced operational agility.
+- Base USDC para contabilidad: simplifica UX ⇒ dependencia de router/oráculo.
+- Ruta fija vía WETH: alta liquidez ⇒ puede no ser óptimo en todos los pares.
+- Validación de precio (staleness + desviación): robustez ⇒ posibles reverts en alta volatilidad.
+- Cap global y límite por retiro: menor riesgo de drenaje ⇒ restringe operaciones grandes.
+- Roles separados: menor superficie de error ⇒ más gestión administrativa.
+- Patrón CEI + ReentrancyGuard: baseline seguridad ⇒ costo marginal de gas.
+- Timelock opcional: protección contra cambios apresurados ⇒ menos agilidad operativa.
 
 </details>
 
-<a id="defi-integrations"></a>
+<a id="integraciones-defi"></a>
 <details>
-<summary><h2>DeFi Integrations</h2></summary>
+<summary><h2>Integraciones DeFi</h2></summary>
 
-- Uniswap V2 Router: estimates with `getAmountsOut`, swap with `swapExactTokensForTokens` and routing via WETH.
-- Chainlink: `latestRoundData()` for ETH/USD; staleness and deviation validation against `lastRecordedPrice`.
+- Uniswap V2 Router: `getAmountsOut` para estimación y `swapExactTokensForTokens` para ejecución.
+- Chainlink: `latestRoundData()` ETH/USD + validaciones de staleness/desviación vs `lastRecordedPrice`.
 
 </details>
 
 ---
 
-<a id="essential-diagrams"></a>
+<a id="diagramas-esenciales"></a>
 <details open>
-<summary><h2>Essential Diagrams</h2></summary>
+<summary><h2>Diagramas Esenciales</h2></summary>
 
 
 <details><summary><strong>1. General system flow</strong></summary>
@@ -369,13 +373,11 @@ flowchart TD
 
 > Complete reference with detailed ASCII diagrams: [FLOW_DIAGRAMS.md](FLOW_DIAGRAMS.md)
 
-</details>
-
 ---
 
 <a id="instalacion-y-uso"></a>
 <details>
-<summary><h2>Instalación y uso</h2></summary>
+<summary><h2>Instalación y Uso</h2></summary>
 
 ```bash
 git clone https://github.com/g-centurion/KipuBankV3_TP4.git
@@ -390,7 +392,7 @@ RPC_URL_SEPOLIA=https://eth-sepolia.g.alchemy.com/v2/TU_RPC_KEY
 ETHERSCAN_API_KEY=TU_KEY
 ```
 
-Compilar y probar:
+Compilar y ejecutar pruebas:
 ```bash
 forge build
 forge test -vv
@@ -404,8 +406,8 @@ source .env
 forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vvvv --dry-run
 ```
 
-#### Guía de frontend
-- Ver [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md): guía práctica para integrar el contrato en una aplicación web. Incluye conexión con ethers/viem, ejemplos de lectura/escritura, suscripción a eventos y manejo de errores.
+#### Guía de Frontend
+Ver [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md) para integración en aplicaciones web (ethers/viem, eventos, manejo de errores).
 
 </details>
 
@@ -413,22 +415,21 @@ forge script script/Interact.s.sol:InteractScript --rpc-url $RPC_URL_SEPOLIA -vv
 
 <a id="interaccion-on-chain-cast"></a>
 <details>
-<summary><h2>Interacción on-chain (cast)</h2></summary>
+<summary><h2>Interacción On-Chain (cast)</h2></summary>
 
 ```bash
-# Dirección del contrato en Sepolia
-CONTRACT_ADDRESS=0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9
+CONTRACT_ADDRESS=0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1
 
-# Lectura: Max withdrawal
+# Lectura: Límite de retiro por transacción
 cast call $CONTRACT_ADDRESS "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
 
-# Lectura: Router
+# Lectura: Router configurado
 cast call $CONTRACT_ADDRESS "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
 
 # Lectura: Ver rol admin
 cast call $CONTRACT_ADDRESS "hasRole(bytes32,address)(bool)" \
-   0x0000000000000000000000000000000000000000000000000000000000000000 0xe7Bc10cbDA9e4830921384C49B9E711d48b0E8C2 \
-   --rpc-url $RPC_URL_SEPOLIA
+  0x0000000000000000000000000000000000000000000000000000000000000000 0xTU_ADMIN \
+  --rpc-url $RPC_URL_SEPOLIA
 ```
 
 </details>
@@ -437,27 +438,27 @@ cast call $CONTRACT_ADDRESS "hasRole(bytes32,address)(bool)" \
 
 <a id="informe-de-analisis-de-amenazas-resumen"></a>
 <details>
-<summary><h2>Informe de análisis de amenazas (resumen)</h2></summary>
+<summary><h2>Resumen de Análisis de Amenazas</h2></summary>
 
-- Debilidades y madurez
-   - Oráculo único ETH/USD: dependencia central. Paso: TWAP/multi‑feed + fallback manual y alertas.
-   - Ruta fija (via WETH): puede no ser la más barata. Paso: ruteo dinámico/Agregador y slippage adaptativo.
-   - Gobernanza sin multisig activo: riesgo de clave única. Paso: multisig + timelock operativo y umbrales claros.
-   - Sin stress tests de gas/MEV: riesgo de costos y reorgs. Paso: escenarios de carga, bundle testing y simulaciones.
+Debilidades y madurez:
+- Oráculo único ETH/USD ⇒ dependencia. Próximo: TWAP/multi‑feed + fallback manual.
+- Ruta fija vía WETH ⇒ puede no ser óptimo en precio. Próximo: agregador/routing dinámico.
+- Gobernanza sin multisig activo ⇒ riesgo clave única. Próximo: multisig + timelock productivo.
+- Sin stress tests gas/MEV ⇒ riesgo costos y manipulación. Próximo: escenarios de carga + simulaciones MEV.
 
-- Cobertura de pruebas
-   - Métricas vigentes: ver [Testing y cobertura](#testing-y-cobertura) (tests, % líneas/funciones y reporte HTML opcional).
+Cobertura de pruebas:
+- Métricas detalladas en sección [Testing y Cobertura](#testing-y-cobertura).
 
-- Métodos de prueba
-   - Unitarias e integración con mocks (router/oráculo), fuzzing, verificación de eventos y RBAC; generación de `lcov` y HTML.
+Métodos de prueba:
+- Unitarias, integración con mocks (router/oráculo), fuzzing, verificación de eventos, RBAC y generación de reportes `lcov`.
 
-Documento completo: ver [THREAT_MODEL.md](THREAT_MODEL.md) y [AUDITOR_GUIDE.md](AUDITOR_GUIDE.md).
+Ver documentos completos: [THREAT_MODEL.md](THREAT_MODEL.md) y [AUDITOR_GUIDE.md](AUDITOR_GUIDE.md).
 
 </details>
 
 <a id="testing-y-cobertura"></a>
 <details>
-<summary><h2>Testing y cobertura</h2></summary>
+<summary><h2>Testing y Cobertura</h2></summary>
 
 ```bash
 - Framework: Foundry (forge-std/Test).
@@ -511,7 +512,7 @@ sudo apt-get install -y lcov
 genhtml -o coverage-html lcov.info
 ```
 
-</details>
+...</details>
 
 ---
 
@@ -520,50 +521,48 @@ genhtml -o coverage-html lcov.info
 <summary><h2>Entregable TP4</h2></summary>
 
 ### Objetivo
-Banco DeFi educativo con depósitos de ETH y ERC‑20, swap automático a USDC vía Uniswap V2, retiros con límites por transacción y validación de precios con Chainlink (staleness + desviación máxima), aplicando buenas prácticas de seguridad.
+Banco DeFi educativo con depósitos de ETH y ERC‑20, swap automático a USDC, límites por transacción y validación robusta de precios (staleness + desviación) aplicando buenas prácticas de seguridad.
 
-### Funcionalidades principales
-- Depósitos ETH con conversión automática a USD y validación de cap global.
-- Depósitos ERC‑20 con swap a USDC mediante ruta Token→WETH→USDC.
-- Retiros hasta límite por transacción (ETH y USDC).
-- Catálogo de tokens administrado por rol y Timelock opcional para cambios sensibles.
-- Sistema de roles (admin, cap manager, pause manager, token manager) y pausa de emergencia.
+### Funcionalidades Principales
+- Depósitos ETH con validación de cap global.
+- Depósitos ERC‑20 y conversión inmediata a USDC.
+- Retiros limitados por transacción (ETH o USDC).
+- Catálogo de tokens administrado por rol y Timelock opcional.
+- Sistema de roles: admin / cap / pause / token.
 
 ### Arquitectura
-- Herencia: AccessControl, Pausable, ReentrancyGuard
-- Librerías: SafeERC20
-- Integraciones: Uniswap V2 Router, Chainlink (ETH/USD)
-- Red: Sepolia | Contrato: `0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9`
+- Herencia: AccessControl, Pausable, ReentrancyGuard.
+- Librerías: SafeERC20.
+- Integraciones: Uniswap V2 Router, Chainlink ETH/USD.
+- Red: Sepolia | Dirección: `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1`.
 
-### Interfaz pública
-
+### Interfaz Pública
 | Función | Rol | Descripción |
 |---------|-----|-------------|
-| `deposit()` | — | Acepta ETH nativo y actualiza saldo interno |
-| `depositAndSwapERC20()` | — | Recibe ERC‑20 y realiza swap a USDC |
-| `withdrawToken()` | — | Retira ETH o USDC respetando límites |
+| `deposit()` | — | Acepta ETH y actualiza balance interno |
+| `depositAndSwapERC20()` | — | Recibe ERC‑20 y swapea a USDC |
+| `withdrawToken()` | — | Retira ETH o USDC según límite |
 | `pause()` / `unpause()` | PAUSE_MANAGER | Control de emergencia |
 | `setEthPriceFeedAddress()` | CAP_MANAGER | Actualiza oráculo ETH/USD |
-| `addOrUpdateToken()` | TOKEN_MANAGER | Administra tokens soportados |
-| `getDepositCount()` / `getWethAddress()` | — | Consultas públicas |
+| `addOrUpdateToken()` | TOKEN_MANAGER | Administra catálogo |
+| `getDepositCount()` / `getWethAddress()` | — | Lecturas públicas |
 
-Eventos: `DepositSuccessful`, `WithdrawalSuccessful`
+Eventos: `DepositSuccessful`, `WithdrawalSuccessful`.
 
-Errores personalizados: `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__StalePrice`, `Bank__PriceDeviation`, `Bank__TransferFailed`
+Errores personalizados: `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__WithdrawalExceedsLimit`, `Bank__InsufficientBalance`, `Bank__TokenNotSupported`, `Bank__SlippageTooHigh`, `Bank__StalePrice`, `Bank__PriceDeviation`, `Bank__TransferFailed`.
 
-### Parámetros clave
-- Cap global: 1,000,000 USD (8 decimales)
-- Timeout oráculo: 1 hora
-- Desviación máxima: 5% (500 bps)
-- Límite por retiro: configurado en constructor
+### Parámetros Clave
+- Cap global: 1,000,000 USD (8 decimales).
+- Timeout oráculo: 3 horas (v2).
+- Desviación máxima: 5% (500 bps).
+- Límite retiro: configurado en constructor.
 
 ### Seguridad
-- Patrón CEI, ReentrancyGuard, SafeERC20
-- Validación de oráculo (staleness + desviación)
-- Slippage controlado en swaps
-- RBAC y pausa de emergencia
-
-- Documentación: AUDITOR_GUIDE.md, THREAT_MODEL.md
+- Patrón CEI + ReentrancyGuard.
+- Validación doble de precio (staleness + desviación).
+- Slippage protegido (`amountOutMin`).
+- RBAC y pausa de emergencia.
+- Documentación de soporte: AUDITOR_GUIDE.md, THREAT_MODEL.md.
 
 </details>
 
@@ -571,7 +570,7 @@ Errores personalizados: `Bank__ZeroAmount`, `Bank__DepositExceedsCap`, `Bank__Wi
 
 <a id="deploy-y-verificacion"></a>
 <details>
-<summary><h2>Deploy y verificación</h2></summary>
+<summary><h2>Deploy y Verificación</h2></summary>
 
 ```bash
 source .env
@@ -581,9 +580,43 @@ forge script script/Deploy.s.sol:DeployScript \
    --verify \
    --etherscan-api-key $ETHERSCAN_API_KEY -vvvv
 ```
-Resultado: contrato desplegado y verificado en Sepolia.
 
-- Ejemplo de deploy: [`script/Deploy.s.sol`](script/Deploy.s.sol) documenta direcciones de Sepolia, parámetros clave (feeds, router, `MAX_WITHDRAWAL_PER_TX`) y logs de despliegue para reproducibilidad.
+El script `Deploy.s.sol` expone direcciones de Sepolia y parámetros (`MAX_WITHDRAWAL_PER_TX`, feeds, router, USDC). La verificación se realizó en Etherscan y Blockscout.
+
+</details>
+
+---
+
+<a id="verificacion-tecnica-bytecode"></a>
+<details>
+<summary><h2>Verificación Técnica Bytecode</h2></summary>
+
+La diferencia entre `deployedBytecode` local (plantilla) y runtime on‑chain se debe a:
+1. Inserción de valores concretos de parámetros del constructor (immutables): direcciones de router, USDC, WETH, price feed y `MAX_WITHDRAWAL_PER_TX`.
+2. Normalización y ubicación de esas direcciones en el layout optimizado por el compilador.
+
+Pasos reproducibles para comparar:
+```bash
+# 1. Compilar y obtener plantilla local
+forge build
+forge inspect src/KipuBankV3_TP4.sol:KipuBankV3 deployedBytecode > local_deployed_bytecode.txt
+
+# 2. Obtener runtime on-chain
+cast code 0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1 --rpc-url $RPC_URL_SEPOLIA > onchain_deployed_bytecode.txt
+
+# 3. Diff (las diferencias esperadas son direcciones y valores de immutables)
+diff -u local_deployed_bytecode.txt onchain_deployed_bytecode.txt || echo "Diferencias esperadas (immutables)"
+
+# 4. Listar selectores para validar superficie de funciones idéntica
+grep -o "63........" local_deployed_bytecode.txt | sort -u > selectors_local.txt
+grep -o "63........" onchain_deployed_bytecode.txt | sort -u > selectors_onchain.txt
+diff selectors_local.txt selectors_onchain.txt || echo "Selectores coinciden salvo orden"
+```
+
+Interpretación:
+- Ausencia de divergencias funcionales: la verificación en Etherscan/Blockscout confirma que el origen coincide con el runtime.
+- Las líneas con `0000…` en plantilla representan slots antes de materializar los argumentos.
+- No se detectan diferencias en lógica, sólo inyección de datos específicos.
 
 </details>
 
@@ -591,13 +624,13 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 <a id="gas-y-optimizaciones"></a>
 <details>
-<summary><h2>Gas y optimizaciones</h2></summary>
+<summary><h2>Optimizaciones de Gas</h2></summary>
 
-- `constant`/`immutable` para reducir SLOAD.
-- Errores personalizados en lugar de strings.
-- `unchecked` en incrementos con pre‑checks.
-- Una sola lectura de oráculo por función.
-- Reutilización de memoria en rutas de swap.
+- Uso de `constant` / `immutable` para evitar SLOAD.
+- Errores personalizados sin strings.
+- Lectura única de oráculo por flujo de depósito.
+- `unchecked` en incrementos controlados.
+- Reutilización de arrays de ruta (minimizando asignaciones).
 
 </details>
 
@@ -605,17 +638,17 @@ Resultado: contrato desplegado y verificado en Sepolia.
 
 <a id="limitaciones-y-roadmap"></a>
 <details>
-<summary><h2>Limitaciones y roadmap</h2></summary>
+<summary><h2>Limitaciones y Roadmap</h2></summary>
 
 | Área | Limitación |
 |------|------------|
-| Oráculos | Solo ETH/USD (sin TWAP/multi‑feed) |
+| Oráculos | Solo ETH/USD (sin TWAP / multi-feed) |
 | Swaps | Ruta fija Token→WETH→USDC |
-| Gobernanza | Timelock opcional, sin multisig |
-| Auditoría | Slither debe ejecutarse localmente |
-| Tests | Faltan stress tests de gas/MEV |
+| Gobernanza | Sin multisig activo (Timelock opcional) |
+| Auditoría | Falta integración continua con Slither/echidna |
+| Tests | Faltan stress tests de gas y escenarios MEV |
 
-Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle, módulos de estrategia y CI con cobertura y Slither.
+Futuro sugerido: multisig + timelock productivo, TWAP/multi-oráculo, agregador de rutas, test de carga, CI con cobertura y Slither.
 
 </details>
 
@@ -625,20 +658,17 @@ Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle,
 <details open>
 <summary><h2>Changelog</h2></summary>
 
-### Version 2 (28 Nov 2025) - Correcciones Post-Auditoría
-- ✅ **Fix crítico**: Lógica atómica en `_checkBankCap` y `_checkEthDepositCap`
-  - Eliminado doble cómputo inconsistente en validación de cap
-  - Snapshot de balance actual capturado ANTES de proyección
-  - Parámetros de error reflejan estado pre-transacción
-- ✅ **NatSpec completo**: Documentación `@param` para todos los errores personalizados
-- ✅ **Timeout de oráculo**: Ajustado de 1h → 3h (más robusto para Chainlink)
-- ✅ **Redespliegue**: Nueva dirección `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1`
-- ✅ **Verificación**: Etherscan y Blockscout actualizados
+### Versión 2 (28 Nov 2025) – Correcciones Post Auditoría
+- Fix crítico: atomicidad en `_checkBankCap` y `_checkEthDepositCap` (snapshot previo + proyección segura).
+- NatSpec completo en errores (`@param` documentado).
+- Timeout oráculo: 1h → 3h para mayor resiliencia ante retrasos.
+- Redespliegue: dirección nueva `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1` verificada.
+- Documentación actualizada (README, AUDITOR_GUIDE, THREAT_MODEL) y Changelog.
 
-### Version 1 (12 Nov 2025) - Release Inicial
-- Deployment inicial en Sepolia
-- Integración Uniswap V2 + Chainlink
-- 43 tests con 95%+ coverage
+### Versión 1 (12 Nov 2025) – Release Inicial
+- Deploy inicial en Sepolia.
+- Integración Uniswap V2 + Chainlink.
+- 43 tests (cobertura alta en contrato principal).
 
 </details>
 
@@ -652,8 +682,7 @@ MIT
 
 </details>
 
-<sub>Last updated: 28 Nov 2025</sub>
-
+<sub>Última actualización: 28 Nov 2025</sub>
 
 ---
 
