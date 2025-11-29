@@ -90,7 +90,7 @@ Si preferís desplegar manualmente sin script:
 ```bash
 source .env
 
-forge create src/KipuBankV3_TP4.sol:KipuBankV3 \
+forge create src/KipuBankV3.sol:KipuBankV3 \
   --rpc-url $RPC_URL_SEPOLIA \
   --private-key $PRIVATE_KEY \
   --constructor-args \
@@ -119,7 +119,7 @@ KipuBankV3 Contract Address: 0x...
 ```bash
 # Auto-detecta constructor args
 forge verify-contract <DIRECCION_CONTRATO> \
-  src/KipuBankV3_TP4.sol:KipuBankV3 \
+  src/KipuBankV3.sol:KipuBankV3 \
   --chain sepolia \
   --watch
 ```
@@ -130,7 +130,7 @@ Verificar en: `https://sepolia.etherscan.io/address/<DIRECCION>#code`
 
 ```bash
 forge verify-contract <DIRECCION_CONTRATO> \
-  src/KipuBankV3_TP4.sol:KipuBankV3 \
+  src/KipuBankV3.sol:KipuBankV3 \
   --verifier blockscout \
   --verifier-url https://eth-sepolia.blockscout.com/api
 ```

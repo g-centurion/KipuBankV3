@@ -73,7 +73,7 @@ Objetivo pedagógico: mostrar buenas prácticas de ingeniería de smart contract
 ---
 
 ## 5. Recorrido del código (alto nivel)
-Archivo principal: `src/KipuBankV3_TP4.sol`.
+Archivo principal: `src/KipuBankV3.sol`.
 
 - `deposit()`: recibe ETH, convierte a USD con precio de Chainlink, verifica cap y acredita saldo.
 - `depositAndSwapERC20(...)`: transfiere el token de entrada, estima swap, valida cap y slippage, ejecuta swap y acredita USDC.
@@ -537,8 +537,8 @@ Tipos de pruebas: unitarias, integración (router/oráculo mocked), fuzzing, eve
 | Tests passing | 43 / 43 |
 | Cobertura global (líneas) | 66.5% |
 | Cobertura global (funciones) | 67.5% |
-| `KipuBankV3_TP4.sol` (líneas) | 89.38% (101/113) |
-| `KipuBankV3_TP4.sol` (funciones) | 88.24% (15/17) |
+| `KipuBankV3.sol` (líneas) | 89.38% (101/113) |
+| `KipuBankV3.sol` (funciones) | 88.24% (15/17) |
 
 ```mermaid
 pie
@@ -549,7 +549,7 @@ pie
 
 ```mermaid
 pie
-  title Cobertura KipuBankV3_TP4.sol (líneas)
+  title Cobertura KipuBankV3.sol (líneas)
   "Cubierto" : 89.38
   "No cubierto" : 10.62
 ```
@@ -558,7 +558,7 @@ pie
 
 | Archivo | Líneas | Cobertura |
 |---------|--------|-----------|
-| `src/KipuBankV3_TP4.sol` | 101/113 | 89.38% |
+| `src/KipuBankV3.sol` | 101/113 | 89.38% |
 | `test/KipuBankV3Test.sol` | 48/59 | 81.36% |
 | `script/Deploy.s.sol` | 0/26 | 0% (no ejecutado en tests) |
 | `script/Interact.s.sol` | 0/20 | 0% (no ejecutado en tests) |

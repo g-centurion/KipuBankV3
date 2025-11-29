@@ -17,14 +17,14 @@
 - Objective: verify the implementation of KipuBankV3.
 
 ### General Information
-- **Main Contract:** `KipuBankV3_TP4.sol` (Solidity 0.8.30)
+- **Main Contract:** `KipuBankV3.sol` (Solidity 0.8.30)
 - **Test Network:** Sepolia Testnet
 - **External Dependencies:** Uniswap V2, Chainlink, OpenZeppelin
 - **Audit Type:** Smart contract security + Protocol integration
 
 ### Audit Scope
 ```
-✅ KipuBankV3_TP4.sol (Main Contract)
+✅ KipuBankV3.sol (Main Contract)
 ✅ Deploy.s.sol (Deployment Script)
 ✅ KipuBankV3.t.sol (Test Suite)
 ❌ Third-party Contracts (Uniswap V2, Chainlink, OpenZeppelin)

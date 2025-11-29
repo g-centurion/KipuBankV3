@@ -471,9 +471,9 @@ Ver documentos completos: [THREAT_MODEL.md](THREAT_MODEL.md) y [AUDITOR_GUIDE.md
 | Cobertura global (líneas) | 67.3% (152/226) |
 | Cobertura global (funciones) | 71.1% (32/45) |
 | Cobertura global (branches) | 67.7% (21/31) |
-| `KipuBankV3_TP4.sol` (líneas) | 90.4% (104/115) |
-| `KipuBankV3_TP4.sol` (funciones) | 90.9% (20/22) |
-| `KipuBankV3_TP4.sol` (branches) | 65.0% (13/20) |
+| `KipuBankV3.sol` (líneas) | 90.4% (104/115) |
+| `KipuBankV3.sol` (funciones) | 90.9% (20/22) |
+| `KipuBankV3.sol` (branches) | 65.0% (13/20) |
 
 ```mermaid
 pie
@@ -484,7 +484,7 @@ pie
 
 ```mermaid
 pie
-   title Cobertura KipuBankV3_TP4.sol (líneas)
+   title Cobertura KipuBankV3.sol (líneas)
    "Cubierto" : 90.4
    "No cubierto" : 9.6
 ```
@@ -493,7 +493,7 @@ pie
 
 | Archivo | Líneas | Funciones | Branches | Cobertura Líneas |
 |---------|--------|-----------|----------|------------------|
-| `src/KipuBankV3_TP4.sol` | 104/115 | 20/22 | 13/20 | 90.4% |
+| `src/KipuBankV3.sol` | 104/115 | 20/22 | 13/20 | 90.4% |
 | `test/KipuBankV3Test.sol` | 48/59 | 12/17 | 8/11 | 81.4% |
 | `script/Deploy.s.sol` | 0/26 | 0/3 | — | 0% (no ejecutado en tests) |
 | `script/Interact.s.sol` | 0/20 | 0/1 | — | 0% (no ejecutado en tests) |
@@ -608,7 +608,7 @@ Pasos reproducibles para comparar:
 ```bash
 # 1. Compilar y obtener plantilla local
 forge build
-forge inspect src/KipuBankV3_TP4.sol:KipuBankV3 deployedBytecode > local_deployed_bytecode.txt
+forge inspect src/KipuBankV3.sol:KipuBankV3 deployedBytecode > local_deployed_bytecode.txt
 
 # 2. Obtener runtime on-chain
 cast code 0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1 --rpc-url $RPC_URL_SEPOLIA > onchain_deployed_bytecode.txt

@@ -60,7 +60,7 @@
 
 | Archivo | Líneas | Funciones | Branches |
 |---------|--------|-----------|----------|
-| `src/KipuBankV3_TP4.sol` | 90.4% (104/115) | 90.9% (20/22) | 65.0% (13/20) |
+| `src/KipuBankV3.sol` | 90.4% (104/115) | 90.9% (20/22) | 65.0% (13/20) |
 | **Global** | 67.3% (152/226) | 71.1% (32/45) | 67.7% (21/31) |
 
 ---
@@ -88,7 +88,7 @@
 - ✅ `script/Deploy.s.sol` - direcciones Sepolia correctas
 - ✅ `script/Interact.s.sol` - dirección v2 actualizada
 - ✅ `README.md` - dirección y TX de deploy correctas
-- ✅ `src/KipuBankV3_TP4.sol` - timeout 3h, NatSpec completo
+- ✅ `src/KipuBankV3.sol` - timeout 3h, NatSpec completo
 
 ---
 
