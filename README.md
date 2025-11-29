@@ -418,7 +418,7 @@ Ver [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md) para integración en aplicaciones web
 <summary><h2>Interacción On-Chain (cast)</h2></summary>
 
 ```bash
-CONTRACT_ADDRESS=0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691
+CONTRACT_ADDRESS=0x0197FB5AcCc60e573C627B7F0779290e200Ed445
 
 # Lectura: Límite de retiro por transacción
 cast call $CONTRACT_ADDRESS "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
@@ -428,8 +428,8 @@ cast call $CONTRACT_ADDRESS "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
 
 # Lectura: Ver rol admin
 cast call $CONTRACT_ADDRESS "hasRole(bytes32,address)(bool)" \
-  0x0000000000000000000000000000000000000000000000000000000000000000 0xTU_ADMIN \
-  --rpc-url $RPC_URL_SEPOLIA
+   0x0000000000000000000000000000000000000000000000000000000000000000 0xTU_ADMIN \
+   --rpc-url $RPC_URL_SEPOLIA
 ```
 
 </details>
@@ -667,15 +667,11 @@ Futuro sugerido: multisig + timelock productivo, TWAP/multi-oráculo, agregador 
 <details open>
 <summary><h2>Changelog</h2></summary>
 
-### Versión 3 (29 Nov 2025) – NatSpec Completo
-- NatSpec completo en todos los parámetros y retornos (incluyendo funciones internas).
-- Redespliegue: dirección nueva `0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691` verificada en Etherscan y Blockscout.
-- Documentación actualizada con nueva dirección.
-
 ### Versión 2 (28 Nov 2025) – Correcciones Post Auditoría
 - Fix crítico: atomicidad en `_checkBankCap` y `_checkEthDepositCap` (snapshot previo + proyección segura).
 - NatSpec completo en errores (`@param` documentado).
 - Timeout oráculo: 1h → 3h para mayor resiliencia ante retrasos.
+- Redespliegue: dirección nueva `0x0197FB5AcCc60e573C627B7F0779290e200Ed445` verificada.
 - Documentación actualizada (README, AUDITOR_GUIDE, THREAT_MODEL) y Changelog.
 
 ### Versión 1 (12 Nov 2025) – Release Inicial
@@ -695,7 +691,7 @@ MIT
 
 </details>
 
-<sub>Última actualización: 29 Nov 2025</sub>
+<sub>Última actualización: 28 Nov 2025</sub>
 
 ---
 

@@ -12,7 +12,7 @@ Sepolia Testnet (Chain ID: 11155111)
 https://sepolia.etherscan.io/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691
 
 ### Blockscout
-https://eth-sepolia.blockscout.com/address/0xc6d24cBbF2CCC70ef6E4EeD507fEA0F801321691
+https://eth-sepolia.blockscout.com/address/0xc6d24cbbf2ccc70ef6e4eed507fea0f801321691
 
 ## Deployment Details
 
