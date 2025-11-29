@@ -618,8 +618,10 @@ Uniswap swaps could consume much gas if high slippage.
 
 ### HIGH PRIORITY (Before Production)
 1. ✅ **ReentrancyGuard added** (COMPLETED)
-2. ✅ **Staleness validation in oracles** (COMPLETED)
-3. ⚠️ **Add Uniswap V3 TWAP as validation** (RECOMMENDED)
+2. ✅ **Staleness validation in oracles** (COMPLETED - 3 hour timeout)
+3. ✅ **Atomic state validation in cap checks** (COMPLETED v2)
+4. ✅ **Complete NatSpec documentation for errors** (COMPLETED v2)
+5. ⚠️ **Add Uniswap V3 TWAP as validation** (RECOMMENDED)
 
 ### MEDIUM PRIORITY (Continuous Improvement)
 4. ⚠️ **Implement Timelock for critical changes**
@@ -643,6 +645,6 @@ Uniswap swaps could consume much gas if high slippage.
 ---
 
 **Document Generated:** 28 Nov 2025  
-**Version:** 1.0  
+**Version:** 1.1 (v2 - con correcciones de atomicidad y NatSpec)  
 **Author:** KipuBank V3 Security Team  
 **Status:** FINAL - Production ready with external audit recommendation

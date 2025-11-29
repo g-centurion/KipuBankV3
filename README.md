@@ -41,6 +41,7 @@
 - [Deploy & Verification](#deploy-and-verification)
 - [Gas Optimizations](#gas-optimizations)
 - [Limitations & Roadmap](#limitations-and-roadmap)
+- [Changelog](#changelog)
 - [License](#license)
 
 ---
@@ -615,6 +616,29 @@ Resultado: contrato desplegado y verificado en Sepolia.
 | Tests | Faltan stress tests de gas/MEV |
 
 Siguientes mejoras sugeridas: integrar multisig + timelock, TWAP/multi‑oracle, módulos de estrategia y CI con cobertura y Slither.
+
+</details>
+
+---
+
+<a id="changelog"></a>
+<details open>
+<summary><h2>Changelog</h2></summary>
+
+### Version 2 (28 Nov 2025) - Correcciones Post-Auditoría
+- ✅ **Fix crítico**: Lógica atómica en `_checkBankCap` y `_checkEthDepositCap`
+  - Eliminado doble cómputo inconsistente en validación de cap
+  - Snapshot de balance actual capturado ANTES de proyección
+  - Parámetros de error reflejan estado pre-transacción
+- ✅ **NatSpec completo**: Documentación `@param` para todos los errores personalizados
+- ✅ **Timeout de oráculo**: Ajustado de 1h → 3h (más robusto para Chainlink)
+- ✅ **Redespliegue**: Nueva dirección `0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1`
+- ✅ **Verificación**: Etherscan y Blockscout actualizados
+
+### Version 1 (12 Nov 2025) - Release Inicial
+- Deployment inicial en Sepolia
+- Integración Uniswap V2 + Chainlink
+- 43 tests con 95%+ coverage
 
 </details>
 

@@ -238,11 +238,19 @@ uint256 private _withdrawalCount
 
 ### ✅ Oracle Handling
 
-- [ ] Chainlink feed validated for positive prices
-- [ ] Staleness validation: ✅ IMPLEMENTED (1 hour timeout)
-- [ ] Handling of 0 or negative prices
-- [ ] 5% deviation check: ✅ IMPLEMENTED
-- [ ] Alternative TWAP consideration
+- [x] Chainlink feed validated for positive prices
+- [x] Staleness validation: ✅ IMPLEMENTED (3 hour timeout - conservative)
+- [x] Handling of 0 or negative prices
+- [x] 5% deviation check: ✅ IMPLEMENTED
+- [x] Alternative TWAP consideration
+
+### ✅ Atomicity & State Consistency (v2 - CRITICAL)
+
+- [x] `_checkBankCap()`: Single snapshot of current balance BEFORE projection
+- [x] `_checkEthDepositCap()`: Pre-state captured atomically (excludes msg.value)
+- [x] No double computation in revert data
+- [x] Error parameters reflect pre-transaction state
+- [x] Consistent USD calculations across validation points
 
 ### ✅ Events
 
@@ -254,10 +262,11 @@ uint256 private _withdrawalCount
 
 ### ✅ Error Handling
 
-- [ ] Custom errors appropriately defined
-- [ ] Descriptive error messages
-- [ ] No require strings (gas optimization)
-- [ ] Specific errors in each case
+- [x] Custom errors appropriately defined
+- [x] Descriptive error messages with NatSpec
+- [x] No require strings (gas optimization)
+- [x] Specific errors in each case
+- [x] Complete @param documentation for all errors (v2)
 
 ### ✅ Gas Considerations
 
@@ -409,6 +418,10 @@ Expected:
 - [Uniswap V2 Documentation](https://docs.uniswap.org/sdk/guides/protocol)
 - [Chainlink Price Feed Docs](https://docs.chain.link/data-feeds)
 - [Solidity Security Best Practices](https://solidity.readthedocs.io/en/latest/security-considerations.html)
+
+---
+
+**Última actualización:** 28 de Noviembre 2025 (v2 - con correcciones de atomicidad y NatSpec completo)
 - [Smart Contract Audit Best Practices](https://github.com/Consensys/smart-contract-best-practices)
 
 ---

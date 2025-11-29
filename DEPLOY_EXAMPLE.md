@@ -52,14 +52,18 @@ forge build
 # Cargar variables de entorno
 source .env
 
-# Desplegar con verificación en Etherscan
+# Desplegar (usar --legacy para evitar problemas de tipo de transacción en Sepolia)
 forge script script/Deploy.s.sol:DeployScript \
-  --rpc-url $RPC_URL_SEPOLIA \
+  --rpc-url sepolia \
   --broadcast \
-  --verify \
-  --etherscan-api-key $ETHERSCAN_API_KEY \
-  -vvvv
+  --legacy \
+  -vvv
+
+# Guardar la dirección del contrato que aparece en los logs:
+# "KipuBankV3 Contract Address: 0x..."
 ```
+
+> **Nota**: Usamos `--rpc-url sepolia` (alias de Foundry) en lugar de `$RPC_URL_SEPOLIA` para mayor simplicidad. El flag `--legacy` asegura compatibilidad con nodos RPC que no soportan EIP-1559.
 
 ### Parámetros del Constructor
 
@@ -102,48 +106,64 @@ forge create src/KipuBankV3_TP4.sol:KipuBankV3 \
 
 ### 1. Obtener dirección del contrato
 
-El comando de despliegue mostrará:
+El comando de despliegue mostrará en los logs:
 ```
-Deployed to: 0xDIRECCION_DEL_CONTRATO
-Transaction hash: 0xHASH_DE_LA_TRANSACCION
-```
-
-### 2. Verificar en Exploradores
-
-**Etherscan:**
-```
-https://sepolia.etherscan.io/address/0xDIRECCION_DEL_CONTRATO
+========== KipuBankV3 Deployment Complete ==========
+KipuBankV3 Contract Address: 0x...
 ```
 
-**Blockscout:**
+### 2. Verificar código en exploradores
+
+#### Etherscan (recomendado - método automático)
+
+```bash
+# Auto-detecta constructor args
+forge verify-contract <DIRECCION_CONTRATO> \
+  src/KipuBankV3_TP4.sol:KipuBankV3 \
+  --chain sepolia \
+  --watch
 ```
-https://sepolia.blockscout.com/address/0xDIRECCION_DEL_CONTRATO
+
+Verificar en: `https://sepolia.etherscan.io/address/<DIRECCION>#code`
+
+#### Blockscout
+
+```bash
+forge verify-contract <DIRECCION_CONTRATO> \
+  src/KipuBankV3_TP4.sol:KipuBankV3 \
+  --verifier blockscout \
+  --verifier-url https://eth-sepolia.blockscout.com/api
 ```
+
+Verificar en: `https://eth-sepolia.blockscout.com/address/<DIRECCION>`
 
 ### 3. Verificar parámetros del contrato
 
 ```bash
-# Verificar MAX_WITHDRAWAL_PER_TX
-cast call 0xDIRECCION_DEL_CONTRATO "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url $RPC_URL_SEPOLIA
+# Verificar MAX_WITHDRAWAL_PER_TX (debe ser 1000000000000000000 = 1 ETH)
+cast call <DIRECCION> "MAX_WITHDRAWAL_PER_TX()(uint256)" --rpc-url sepolia
+
+# Verificar BANK_CAP_USD (debe ser 10000000000 = $100 con 8 decimales)
+cast call <DIRECCION> "BANK_CAP_USD()(uint256)" --rpc-url sepolia
+
+# Verificar PRICE_FEED_TIMEOUT (debe ser 10800 = 3 horas)
+cast call <DIRECCION> "PRICE_FEED_TIMEOUT()(uint256)" --rpc-url sepolia
 
 # Verificar Router
-cast call 0xDIRECCION_DEL_CONTRATO "I_ROUTER()(address)" --rpc-url $RPC_URL_SEPOLIA
-
-# Verificar WETH
-cast call 0xDIRECCION_DEL_CONTRATO "WETH_TOKEN()(address)" --rpc-url $RPC_URL_SEPOLIA
+cast call <DIRECCION> "I_ROUTER()(address)" --rpc-url sepolia
 
 # Verificar USDC
-cast call 0xDIRECCION_DEL_CONTRATO "USDC_TOKEN()(address)" --rpc-url $RPC_URL_SEPOLIA
+cast call <DIRECCION> "USDC_TOKEN()(address)" --rpc-url sepolia
 ```
 
-### 4. Verificar roles
+### 4. Verificar roles (RBAC)
 
 ```bash
-# Verificar que el deployer tiene rol de admin
-cast call 0xDIRECCION_DEL_CONTRATO "hasRole(bytes32,address)(bool)" \
+# DEFAULT_ADMIN_ROLE (bytes32(0))
+cast call <DIRECCION> "hasRole(bytes32,address)(bool)" \
   0x0000000000000000000000000000000000000000000000000000000000000000 \
-  $DEPLOYER_ADDRESS \
-  --rpc-url $RPC_URL_SEPOLIA
+  <TU_DIRECCION> \
+  --rpc-url sepolia
 ```
 
 ## 🧪 Interacción Post-Despliegue
@@ -242,4 +262,4 @@ cast code 0x1c7d4B196CB0c6b364c3d6eB8F0708a9dA00375D --rpc-url $RPC_URL_SEPOLIA
 
 ---
 
-**Última actualización:** 12 de Noviembre 2025
+**Última actualización:** 28 de Noviembre 2025 (v2 - con correcciones de atomicidad y NatSpec)
