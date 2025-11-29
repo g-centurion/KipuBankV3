@@ -2,13 +2,13 @@
 <div align="center">
 
 # KipuBankV3_TP4 – Banco DeFi con Swaps y Oráculos
-<strong>Contrato desplegado en Sepolia</strong>
+<strong>Contrato desplegado en Sepolia (v2 - con correcciones)</strong>
 
 <p>
-<strong>Contrato:</strong> <code>0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9</code> ·
-<strong>Tx:</strong> <code>0x39e16f646659e63d285027d84659eb060b453b3f12f457cfe75d5f1eed247e25</code><br/>
-<a href="https://sepolia.etherscan.io/address/0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9#code">Etherscan</a> ·
-<a href="https://eth-sepolia.blockscout.com/address/0x7700c83b48C2f4247B8e09DaBE4fEAA9bF7a39f9">Blockscout</a>
+<strong>Contrato:</strong> <code>0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1</code> ·
+<strong>Tx:</strong> <code>0x0094c3f6c2b573c4d8f94af4fb6d26c5a379eb36637453132c30125075820bb0</code><br/>
+<a href="https://sepolia.etherscan.io/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1#code">Etherscan</a> ·
+<a href="https://eth-sepolia.blockscout.com/address/0x2F29A6FB468036797357Ad6eCee78cE2ca013dc1">Blockscout</a>
 </p>
 
 </div>
