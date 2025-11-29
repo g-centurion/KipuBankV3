@@ -319,6 +319,9 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Calculates total bank value in USD including pending deposit.
+     * @param pendingUsdValue Pending deposit value in USD (8 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals).
+     * @return Total USD value.
      */
     function _getBankTotalUsdValue(uint256 pendingUsdValue, uint256 ethPriceUsd) private view returns (uint256) {
         uint256 ethBalance = address(this).balance;
@@ -330,6 +333,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Checks if adding pending deposit would exceed bank cap.
+     * @param pendingUsdValue Pending deposit value in USD (8 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals).
      */
     function _checkBankCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
         uint256 currentUsdBalance = _getBankTotalUsdValue(0, ethPriceUsd);
@@ -343,6 +348,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Checks ETH deposit cap accounting for msg.value already in balance.
+     * @param pendingUsdValue Pending ETH deposit value in USD (8 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals).
      */
     function _checkEthDepositCap(uint256 pendingUsdValue, uint256 ethPriceUsd) private view {
         uint256 preEthBalance = address(this).balance - msg.value;
@@ -359,6 +366,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Retrieves latest ETH/USD price from Chainlink oracle with validation.
+     * @return uintPrice ETH price in USD (8 decimals).
      */
     function _getEthPriceInUsd() internal view returns (uint256 uintPrice) {
         (, int256 price,, uint256 updatedAt,) = sEthPriceFeed.latestRoundData();
@@ -387,6 +395,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Updates last recorded price for deviation checking.
+     * @param newPrice Latest accepted ETH/USD price (8 decimals).
      */
     function _updateRecordedPrice(int256 newPrice) internal {
         lastRecordedPrice = newPrice;
@@ -394,6 +403,9 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Converts ETH amount to USD value.
+     * @param ethAmount Amount in Wei (18 decimals).
+     * @param ethPriceUsd ETH price in USD (8 decimals).
+     * @return USD value (8 decimals).
      */
     function _getUsdValueFromWei(uint256 ethAmount, uint256 ethPriceUsd) private pure returns (uint256) {
         return (ethAmount * ethPriceUsd) / 10 ** 18;
@@ -401,6 +413,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @dev Converts USDC amount to USD value.
+     * @param usdcAmount Amount in USDC (6 decimals).
+     * @return USD value (8 decimals).
      */
     function _getUsdValueFromUsdc(uint256 usdcAmount) private pure returns (uint256) {
         return usdcAmount * 10 ** 2;
@@ -408,6 +422,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns total number of successful deposits.
+     * @return depositCount The total number of deposits recorded.
      */
     function getDepositCount() external view returns (uint256) {
         return _depositCount;
@@ -415,6 +430,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns number of successful withdrawals.
+     * @return withdrawalCount The total number of withdrawals recorded.
      */
     function getWithdrawalCount() external view returns (uint256) {
         return _withdrawalCount;
@@ -422,6 +438,7 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Returns WETH address used for swap routing.
+     * @return weth The canonical WETH token address configured in the router.
      */
     function getWethAddress() external view returns (address) {
         return WETH_TOKEN;
@@ -429,6 +446,8 @@ contract KipuBankV3 is AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Declares support for AccessControl interfaces.
+     * @param interfaceId Interface identifier (ERC165).
+     * @return True if interface is supported.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
         return AccessControl.supportsInterface(interfaceId);
